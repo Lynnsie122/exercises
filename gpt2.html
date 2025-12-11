@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Playground · Rabbit & Life Hub</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --panel:#fff; --muted:#6b7280; --fg:#0f1720;
+    --accent:#0f62fe; --radius:12px; --gap:12px; --shadow: 0 10px 30px rgba(12,14,20,0.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:var(--fg)}
+  .app{display:flex;gap:20px;max-width:1200px;margin:18px auto;padding:18px}
+  /* sidebar */
+  .sidebar{width:220px;background:var(--panel);padding:14px;border-radius:14px;box-shadow:var(--shadow);border:1px solid rgba(0,0,0,0.04);display:flex;flex-direction:column;gap:12px}
+  .logo{font-weight:700;font-size:18px}
+  .nav{display:flex;flex-direction:column;gap:6px}
+  .nav button{background:transparent;border:0;padding:10px;border-radius:10px;text-align:left;cursor:pointer;color:var(--muted)}
+  .nav button.active{background:linear-gradient(180deg,#fff,#f3f6ff);color:var(--fg);box-shadow:0 8px 20px rgba(12,62,150,0.06);border:1px solid rgba(15,23,42,0.04)}
+  .small{font-size:12px;color:var(--muted)}
+  /* main */
+  .main{flex:1;display:flex;flex-direction:column;gap:14px}
+  .topbar{display:flex;gap:12px;align-items:center}
+  .search{flex:1;padding:8px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:var(--panel)}
+  .search input{width:100%;border:0;outline:none;padding:6px;font-size:14px;background:transparent}
+  .capture{display:flex;gap:8px}
+  .cap-input{padding:8px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:var(--panel)}
+  .grid{display:grid;grid-template-columns:2fr 320px;gap:12px}
+  .panel{background:var(--panel);padding:12px;border-radius:12px;box-shadow:var(--shadow);border:1px solid rgba(0,0,0,0.04)}
+  h3{margin:0 0 8px 0}
+  /* specific */
+  .habit-list{display:flex;flex-direction:column;gap:8px}
+  .habit{display:flex;align-items:center;justify-content:space-between;padding:8px;border-radius:10px;border:1px solid rgba(0,0,0,0.04);background:linear-gradient(180deg,#fff,#fbfdff)}
+  .habit-left{display:flex;gap:10px;align-items:center}
+  .btn{padding:8px 10px;border-radius:8px;border:0;background:var(--accent);color:#fff;cursor:pointer}
+  .muted{color:var(--muted);font-size:13px}
+  .mood-wall{display:flex;flex-direction:column;gap:8px}
+  .mood-grid{display:flex;flex-wrap:wrap;gap:8px}
+  .mood-card{padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.04);background:#fff;min-width:140px}
+  textarea{width:100%;min-height:64px;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)}
+  .note-list{display:flex;flex-direction:column;gap:8px}
+  .note-item{padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.04);background:#fff}
+  .rabbit{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px}
+  .rabbit .pix{width:160px;height:120px;border-radius:12px;background:linear-gradient(180deg,#fff,#f6fbff);display:flex;align-items:center;justify-content:center;font-size:54px}
+  .rabbit-stats{display:flex;gap:8px}
+  .stat{padding:8px;border-radius:10px;background:#fff;border:1px solid rgba(0,0,0,0.04)}
+  .sound-controls{display:flex;flex-direction:column;gap:8px}
+  .slider{width:100%}
+  .journal-list{display:flex;flex-direction:column;gap:8px}
+  .collage-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .collage-grid img{width:100%;height:100px;object-fit:cover;border-radius:6px}
+  .footer{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:13px}
+  @media (max-width:980px){ .app{flex-direction:column;padding:10px} .grid{grid-template-columns:1fr} .sidebar{display:flex;flex-direction:row;gap:8px;overflow:auto;width:100%} .nav{flex-direction:row} }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div>
+      <div class="logo">Rabbit Hub</div>
+      <div class="small">All-in-one playful personal dashboard</div>
+    </div>
+    <nav class="nav" id="nav">
+      <button data-view="home" class="active">Overview</button>
+      <button data-view="habits">习惯 & 成就</button>
+      <button data-view="mood">情绪 & 灵感墙</button>
+      <button data-view="notes">知识笔记</button>
+      <button data-view="rabbit">小兔子</button>
+      <button data-view="ambient">氛围声</button>
+      <button data-view="journal">微日记</button>
+      <button data-view="collage">照片拼贴</button>
+      <button data-view="settings">设置 / 导出</button>
+    </nav>
+    <div style="margin-top:auto">
+      <div class="small">Data stored locally · Try export/import</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="search panel" style="max-width:640px">
+        <input id="globalSearch" placeholder="Search notes / moods / habits..." />
+      </div>
+      <div class="capture">
+        <input id="quickTitle" class="cap-input" placeholder="Quick title / thought" />
+        <button id="quickAddNote" class="btn">Capture</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <!-- views -->
+        <section id="view-home" class="panel view">
+          <h3>Overview</h3>
+          <div style="display:flex;gap:12px">
+            <div style="flex:1">
+              <div class="panel" style="margin-bottom:12px"><strong>Habits</strong>
+                <div id="homeHabits" style="margin-top:8px" class="muted">—</div>
+              </div>
+              <div class="panel" style="margin-bottom:12px"><strong>Recent Moods & Ideas</strong>
+                <div id="homeMoods" style="margin-top:8px" class="muted">—</div>
+              </div>
+              <div class="panel"><strong>Rabbit</strong>
+                <div id="homeRabbit" style="margin-top:8px" class="muted">—</div>
+              </div>
+            </div>
+            <div style="width:260px">
+              <div class="panel"><strong>Quick stats</strong>
+                <div style="margin-top:8px" class="muted" id="quickStats">—</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="view-habits" class="panel view" style="display:none">
+          <h3>习惯 & 成就</h3>
+          <div style="display:flex;gap:12px;margin-top:8px">
+            <div style="flex:1">
+              <div class="habit-list" id="habitList"></div>
+              <div style="margin-top:8px;display:flex;gap:8px">
+                <input id="newHabitName" placeholder="新习惯名称" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)"/>
+                <button id="addHabit" class="btn">Add</button>
+              </div>
+            </div>
+            <div style="width:260px">
+              <div class="panel"><strong>Achievements</strong>
+                <div id="achieveList" style="margin-top:8px"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="view-mood" class="panel view" style="display:none">
+          <h3>情绪 & 灵感墙</h3>
+          <div style="display:flex;gap:12px">
+            <div style="flex:1">
+              <div style="display:flex;gap:8px;margin-bottom:8px">
+                <select id="moodSelect" class="cap-input">
+                  <option value="happy">😊 开心</option>
+                  <option value="meh">😐 平静</option>
+                  <option value="sad">😢 低落</option>
+                  <option value="angry">😤 生气</option>
+                  <option value="inspired">✨ 灵感</option>
+                </select>
+                <input id="moodTag" class="cap-input" placeholder="标签 (逗号分隔)"/>
+                <button id="addMood" class="btn">Add</button>
+              </div>
+              <div id="moodWall" class="mood-wall"></div>
+            </div>
+            <div style="width:260px">
+              <div class="panel"><strong>Mood Stats</strong>
+                <div id="moodStats" style="margin-top:8px" class="muted">—</div>
+              </div>
+              <div class="panel" style="margin-top:8px"><strong>Recent Ideas</strong>
+                <div id="ideaList" style="margin-top:8px" class="muted">—</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="view-notes" class="panel view" style="display:none">
+          <h3>知识笔记（简易 Wiki）</h3>
+          <div style="display:flex;gap:12px;margin-top:8px">
+            <div style="flex:1">
+              <div style="display:flex;gap:8px;margin-bottom:8px">
+                <input id="noteTitle" class="cap-input" placeholder="标题"/>
+                <button id="newNoteBtn" class="btn">New</button>
+              </div>
+              <div class="note-list" id="noteList"></div>
+            </div>
+            <div style="width:260px">
+              <div class="panel"><strong>Note Links</strong>
+                <div id="noteLinks" class="muted" style="margin-top:8px">—</div>
+              </div>
+              <div class="panel" style="margin-top:8px"><strong>Graph (adjacency)</strong>
+                <pre id="noteGraph" class="muted" style="white-space:pre-wrap"></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="view-rabbit" class="panel view" style="display:none">
+          <h3>你的虚拟小兔</h3>
+          <div class="rabbit">
+            <div class="pix" id="rabbitPix">🐰</div>
+            <div style="font-weight:600" id="rabbitName">Bunny</div>
+            <div class="rabbit-stats">
+              <div class="stat">饥饿: <span id="statHunger"></span></div>
+              <div class="stat">快乐: <span id="statJoy"></span></div>
+              <div class="stat">精力: <span id="statEnergy"></span></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button id="feedBtn" class="btn">喂食</button>
+              <button id="playBtn" class="btn">玩耍</button>
+              <button id="sleepBtn" class="btn">让它休息</button>
+            </div>
+            <div style="margin-top:10px;width:100%">
+              <div class="small">与习惯联动：完成习惯会给小兔子 +XP / 食物</div>
+              <div id="rabbitLog" class="muted" style="margin-top:8px">—</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="view-ambient" class="panel view" style="display:none">
+          <h3>氛围声混音器</h3>
+          <div class="sound-controls">
+            <label>雨 <input type="range" id="rainVol" min="0" max="1" step="0.01" class="slider" /></label>
+            <label>风 <input type="range" id="windVol" min="0" max="1" step="0.01" class="slider" /></label>
+            <label>咖啡店 <input type="range" id="cafeVol" min="0" max="1" step="0.01" class="slider" /></label>
+            <label>白噪音 <input type="range" id="whiteVol" min="0" max="1" step="0.01" class="slider" /></label>
+            <div style="display:flex;gap:8px">
+              <button id="startSound" class="btn">Start</button>
+              <button id="stopSound" class="btn" style="background:#ccc;color:#000">Stop</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="view-journal" class="panel view" style="display:none">
+          <h3>微日记</h3>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <textarea id="journalText" placeholder="今日三句话 / 三个关键词..."></textarea>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button id="saveJournal" class="btn">保存</button>
+              <button id="summarize" class="btn" style="background:#444">自动摘要</button>
+              <button id="exportJournal" class="btn" style="background:#aaa;color:#000">导出</button>
+            </div>
+          </div>
+          <div class="journal-list" id="journalList"></div>
+        </section>
+
+        <section id="view-collage" class="panel view" style="display:none">
+          <h3>照片拼贴</h3>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <input type="file" id="collageFiles" multiple accept="image/*"/>
+            <button id="genCollage" class="btn">保存拼贴（下载）</button>
+          </div>
+          <div class="collage-grid" id="collageGrid"></div>
+        </section>
+
+        <section id="view-settings" class="panel view" style="display:none">
+          <h3>设置 / 导出</h3>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button id="exportBtn" class="btn">Export JSON</button>
+            <label style="padding:8px;border-radius:8px;background:#fff;border:1px solid rgba(0,0,0,0.06);cursor:pointer">
+              Import JSON <input id="importFile" type="file" accept="application/json" style="display:none" />
+            </label>
+            <button id="resetBtn" class="btn" style="background:#f66">清除全部</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- right column -->
+      <aside style="display:flex;flex-direction:column;gap:12px">
+        <div class="panel">
+          <h4>Quick Capture</h4>
+          <input id="capInput" class="cap-input" placeholder="写点想法或任务..." />
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button id="capAsNote" class="btn">Save Note</button>
+            <button id="capAsMood" class="btn" style="background:#7b61ff">Save Mood</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h4>Shortcuts</h4>
+          <div class="small">
+            n: new note · m: mood · h: new habit · / focus search
+          </div>
+        </div>
+
+        <div class="panel">
+          <h4>About</h4>
+          <div class="small">Prototype · Local data · Want cloud sync? I can add it (Supabase/Firebase).</div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer panel" style="margin-top:8px">
+      <div>Made for fun · Local demo</div>
+      <div id="status" class="small muted">—</div>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ===== Simple unified state in localStorage ===== */
+const KEY = 'rabbit:hub:v1';
+const defaultState = {
+  habits: [
+    {id:'h1',name:'早起',streak:0,last: null,xp:0,created:Date.now()},
+    {id:'h2',name:'阅读20min',streak:0,last:null,xp:0,created:Date.now()}
+  ],
+  moods: [],
+  notes: [],
+  rabbit: {name:'Bunny',hunger:50,joy:60,energy:70,xp:0,level:1,log:[]},
+  journal: [],
+  collage: [] // {id, dataUrl}
+};
+let state = load();
+
+function load(){ try{ const raw=localStorage.getItem(KEY); return raw? JSON.parse(raw): structuredClone(defaultState);}catch(e){console.error(e);return structuredClone(defaultState)} }
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); renderAll(); }
+
+/* ===== Utilities ===== */
+function uid(p='id'){ return p+Math.random().toString(36).slice(2,9) }
+function todayStr(){ const d=new Date(); return d.toISOString().slice(0,10) }
+
+/* ===== Rendering ===== */
+function renderAll(){
+  renderHome(); renderHabits(); renderMoods(); renderNotes(); renderRabbit(); renderJournal(); renderCollage(); updateStats();
+}
+
+function renderHome(){
+  document.getElementById('homeHabits').textContent = state.habits.map(h=>`${h.name} (${h.streak}⚡)`).join(' · ') || '—';
+  document.getElementById('homeMoods').textContent = state.moods.slice().reverse().slice(0,6).map(m=>`${m.emoji} ${m.text||''}`).join(' · ') || '—';
+  document.getElementById('homeRabbit').textContent = `${state.rabbit.name} Lv${state.rabbit.level} · XP:${state.rabbit.xp}`;
+  document.getElementById('quickStats').textContent = `Notes ${state.notes.length} · Moods ${state.moods.length} · Habits ${state.habits.length}`;
+}
+
+function renderHabits(){
+  const wrap = document.getElementById('habitList'); wrap.innerHTML='';
+  state.habits.forEach(h=>{
+    const el = document.createElement('div'); el.className='habit';
+    el.innerHTML = `<div class="habit-left"><div style="font-weight:600">${h.name}</div><div class="muted" style="font-size:12px">streak ${h.streak} · xp ${h.xp}</div></div>
+      <div style="display:flex;gap:8px"><button class="btn btn-done" data-id="${h.id}">打卡</button><button class="muted" data-id="${h.id}">Delete</button></div>`;
+    wrap.appendChild(el);
+  });
+  // bind
+  wrap.querySelectorAll('.btn-done').forEach(b=> b.onclick = ()=>{ const id=b.dataset.id; doHabit(id); });
+  wrap.querySelectorAll('.muted[data-id]').forEach(b=> b.onclick = ()=>{ const id=b.dataset.id; if(confirm('Delete habit?')){ state.habits = state.habits.filter(x=>x.id!==id); save(); }});
+}
+
+function renderMoods(){
+  const wall = document.getElementById('moodWall'); wall.innerHTML='';
+  const recentIdeas = document.getElementById('ideaList'); recentIdeas.innerHTML='';
+  state.moods.slice().reverse().forEach(m=>{
+    const c = document.createElement('div'); c.className='mood-card';
+    c.innerHTML = `<div style="font-size:20px">${m.emoji} ${m.tag?'<span class="muted">'+m.tag+'</span>':''}</div>
+      <div style="margin-top:6px">${escape(m.text||'')}</div>
+      <div class="muted" style="font-size:12px;margin-top:6px">${m.date}</div>`;
+    wall.appendChild(c);
+    if(m.type==='idea') recentIdeas.appendChild(document.createTextNode((m.text||'') + '\n'));
+  });
+  // stats
+  const counts = state.moods.reduce((acc,m)=>{ acc[m.emoji]=(acc[m.emoji]||0)+1; return acc; }, {});
+  const stats = Object.entries(counts).map(([k,v])=>`${k} ${v}`).join(' · ') || '—';
+  document.getElementById('moodStats').textContent = stats;
+}
+
+function renderNotes(){
+  const list = document.getElementById('noteList'); list.innerHTML='';
+  if(state.notes.length===0){ list.innerHTML='<div class="muted">No notes</div>'; return; }
+  state.notes.slice().reverse().forEach(n=>{
+    const el = document.createElement('div'); el.className='note-item';
+    el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-weight:600">${escape(n.title)}</div>
+      <div><button data-id="${n.id}" class="btn open-note">Open</button></div></div>
+      <div class="muted" style="font-size:13px;margin-top:6px">${n.updated}</div>`;
+    list.appendChild(el);
+  });
+  list.querySelectorAll('.open-note').forEach(b=> b.onclick = ()=>{ const id=b.dataset.id; openNoteModal(id); });
+  renderNoteLinks();
+  renderNoteGraph();
+}
+
+function renderNoteLinks(){
+  const node = document.getElementById('noteLinks'); node.innerHTML='';
+  // show simple backlinks for selected or global
+  state.notes.forEach(n=>{
+    const links = findLinks(n.content || '');
+    if(links.length) node.appendChild(document.createTextNode(`${n.title}: links to ${links.join(', ')}\n`));
+  });
+}
+
+function renderNoteGraph(){
+  const adj = {};
+  state.notes.forEach(n=>{ adj[n.title] = findLinks(n.content||''); });
+  document.getElementById('noteGraph').textContent = JSON.stringify(adj, null, 2);
+}
+
+function renderRabbit(){
+  document.getElementById('rabbitName').textContent = state.rabbit.name || 'Bunny';
+  document.getElementById('statHunger').textContent = Math.round(state.rabbit.hunger);
+  document.getElementById('statJoy').textContent = Math.round(state.rabbit.joy);
+  document.getElementById('statEnergy').textContent = Math.round(state.rabbit.energy);
+  document.getElementById('rabbitLog').textContent = (state.rabbit.log || []).slice().reverse().slice(0,6).join('\n') || '—';
+  document.getElementById('rabbitPix').textContent = state.rabbit.xp > 120 ? '🐰✨' : '🐰';
+}
+
+function renderJournal(){
+  const list = document.getElementById('journalList'); list.innerHTML='';
+  state.journal.slice().reverse().forEach(j=>{
+    const el = document.createElement('div'); el.className='note-item';
+    el.innerHTML = `<div style="font-weight:600">${j.date}</div><div class="muted" style="margin-top:6px">${escape(j.text)}</div>`;
+    list.appendChild(el);
+  });
+}
+
+function renderCollage(){
+  const g = document.getElementById('collageGrid'); g.innerHTML='';
+  state.collage.forEach(c=>{
+    const img = document.createElement('img'); img.src = c.data; img.alt = c.id;
+    g.appendChild(img);
+  });
+}
+
+/* ===== Helpers: links in notes ===== */
+function findLinks(text){
+  // simple pattern [[Note Title]]
+  const re = /\[\[([^\]]+)\]\]/g; const out=[]; let m;
+  while((m=re.exec(text))){ out.push(m[1]); }
+  return out;
+}
+
+function openNoteModal(id){
+  const note = state.notes.find(n=>n.id===id);
+  const title = prompt('Title', note.title||'');
+  if(title===null) return;
+  const content = prompt('Content (use [[Title]] to link)', note.content||'');
+  if(content===null) return;
+  note.title = title; note.content = content; note.updated = new Date().toLocaleString();
+  // if new links point to non-existent note titles, create placeholders
+  const links = findLinks(content);
+  links.forEach(t=>{
+    if(!state.notes.some(n=>n.title===t)) state.notes.push({id:uid('note'), title:t, content:'', created:Date.now(), updated:new Date().toLocaleString()});
+  });
+  save();
+}
+
+/* ===== Actions ===== */
+function doHabit(id){
+  const h = state.habits.find(x=>x.id===id); if(!h) return;
+  const today = todayStr();
+  if(h.last===today){ alert('今日已打卡'); return; }
+  // check yesterday for streak
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const ystr = yesterday.toISOString().slice(0,10);
+  if(h.last===ystr) h.streak = (h.streak||0)+1; else h.streak = 1;
+  h.last = today;
+  h.xp = (h.xp||0) + 10;
+  // reward rabbit: food + xp
+  state.rabbit.hunger = Math.max(0, state.rabbit.hunger - 8);
+  state.rabbit.xp += 5;
+  if(state.rabbit.xp > 100){ state.rabbit.level += 1; state.rabbit.xp = state.rabbit.xp - 100; state.rabbit.log.push(`Leveled up to ${state.rabbit.level}`); }
+  state.rabbit.log.push(`Habit "${h.name}" checked (+xp)`);
+  save();
+}
+
+document.getElementById('addHabit').onclick = ()=>{
+  const name = document.getElementById('newHabitName').value.trim();
+  if(!name) return alert('输入习惯名称');
+  state.habits.push({id:uid('h'), name, streak:0, last:null, xp:0, created:Date.now()});
+  document.getElementById('newHabitName').value='';
+  save();
+};
+
+/* mood */
+document.getElementById('addMood').onclick = ()=>{
+  const sel = document.getElementById('moodSelect'); const emoji = sel.options[sel.selectedIndex].text.split(' ')[0];
+  const tag = document.getElementById('moodTag').value.trim();
+  const text = prompt('记录一下细节（可选）') || '';
+  state.moods.push({id:uid('m'), emoji, tag, text, date: new Date().toLocaleString(), type: text? 'idea':'mood'});
+  document.getElementById('moodTag').value='';
+  save();
+};
+
+/* quick capture */
+document.getElementById('quickAddNote').onclick = ()=>{
+  const t = document.getElementById('quickTitle').value.trim(); if(!t) return alert('写点东西');
+  state.notes.push({id:uid('n'), title:t, content:'', created:Date.now(), updated:new Date().toLocaleString()});
+  document.getElementById('quickTitle').value='';
+  save();
+};
+
+/* note new */
+document.getElementById('newNoteBtn').onclick = ()=>{
+  const t = document.getElementById('noteTitle').value.trim() || 'Untitled';
+  const n = {id:uid('n'), title:t, content:'', created:Date.now(), updated:new Date().toLocaleString()};
+  state.notes.push(n); document.getElementById('noteTitle').value=''; save();
+};
+
+/* capture panel */
+document.getElementById('capAsNote').onclick = ()=>{
+  const t = document.getElementById('capInput').value.trim();
+  if(!t) return alert('写点东西');
+  state.notes.push({id:uid('n'), title:t.slice(0,30), content:t, created:Date.now(), updated:new Date().toLocaleString()});
+  document.getElementById('capInput').value=''; save();
+};
+document.getElementById('capAsMood').onclick = ()=>{
+  const t = document.getElementById('capInput').value.trim();
+  if(!t) return alert('写点东西');
+  state.moods.push({id:uid('m'), emoji:'✨', tag:'idea', text:t, date:new Date().toLocaleString(), type:'idea'}); document.getElementById('capInput').value=''; save();
+};
+
+/* search */
+document.getElementById('globalSearch').addEventListener('input', (e)=>{
+  const q = e.target.value.trim().toLowerCase();
+  if(!q){ document.getElementById('status').textContent=''; return; }
+  const matches = [];
+  state.notes.forEach(n=>{ if((n.title||'').toLowerCase().includes(q) || (n.content||'').toLowerCase().includes(q)) matches.push(`Note: ${n.title}`); });
+  state.moods.forEach(m=>{ if((m.text||'').toLowerCase().includes(q)) matches.push(`Mood: ${m.text}`); });
+  state.habits.forEach(h=>{ if(h.name.toLowerCase().includes(q)) matches.push(`Habit: ${h.name}`); });
+  document.getElementById('status').textContent = matches.slice(0,6).join(' · ') || 'No results';
+});
+
+/* journal */
+document.getElementById('saveJournal').onclick = ()=>{
+  const t = document.getElementById('journalText').value.trim();
+  if(!t) return alert('写点东西');
+  state.journal.push({id:uid('j'), text:t, date:new Date().toLocaleString()});
+  document.getElementById('journalText').value=''; save();
+};
+document.getElementById('summarize').onclick = ()=>{
+  // naive summary: most common words excluding stopwords
+  const all = state.journal.map(j=>j.text).join(' ').toLowerCase();
+  const stop = new Set(['的','了','和','是','我','也','在','有','不','就','to','a','the','and']);
+  const words = all.split(/\W+/).filter(w=>w && !stop.has(w));
+  const freq = {};
+  words.forEach(w=>freq[w]=(freq[w]||0)+1);
+  const top = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,6).map(x=>x[0]);
+  alert('自动摘要（关键词）: ' + top.join(', '));
+};
+
+/* collage */
+document.getElementById('collageFiles').addEventListener('change', async (e)=>{
+  const files = Array.from(e.target.files).slice(0,9);
+  for(const f of files){
+    const data = await readFileAsDataURL(f);
+    state.collage.push({id:uid('c'), data});
+  }
+  save();
+});
+document.getElementById('genCollage').onclick = ()=>{
+  // produce a simple single-row stitched image via canvas
+  const imgs = state.collage.map(c=>c.data);
+  if(imgs.length===0) return alert('没有图片');
+  const canvas = document.createElement('canvas');
+  const cols = 3;
+  const rows = Math.ceil(imgs.length/cols);
+  const w = 300, h = 200;
+  canvas.width = cols * w; canvas.height = rows * h;
+  const ctx = canvas.getContext('2d');
+  let idx=0;
+  const loadPromises = imgs.map(src=> new Promise(res=>{
+    const im=new Image(); im.onload=()=>res(im); im.src=src;
+  }));
+  Promise.all(loadPromises).then(images=>{
+    images.forEach((im,i)=>{
+      const x = (i%cols)*w, y = Math.floor(i/cols)*h;
+      ctx.drawImage(im, x, y, w, h);
+    });
+    const data = canvas.toDataURL('image/png');
+    const a = document.createElement('a'); a.href=data; a.download='collage.png'; a.click();
+  });
+};
+
+/* ambience sound (simple using oscillators / noise buffers) */
+let audioCtx = null, rainNode=null, whiteNode=null, cafeNode=null, windNode=null;
+document.getElementById('startSound').onclick = async ()=>{
+  if(!audioCtx){ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
+  // create white noise
+  if(!whiteNode){
+    const bufferSize = 2 * audioCtx.sampleRate;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<bufferSize;i++) data[i] = (Math.random()*2-1)*0.2;
+    whiteNode = audioCtx.createBufferSource(); whiteNode.buffer = buffer; whiteNode.loop = true;
+    const whiteGain = audioCtx.createGain(); whiteGain.gain.value = +document.getElementById('whiteVol').value || 0.0;
+    whiteNode.connect(whiteGain).connect(audioCtx.destination);
+    whiteNode.start();
+    whiteNode._gain = whiteGain;
+  }
+  // simple rain: filtered noise
+  if(!rainNode){
+    const bufferSize = 2 * audioCtx.sampleRate;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<bufferSize;i++) data[i] = (Math.random()*2-1)*0.6;
+    rainNode = audioCtx.createBufferSource(); rainNode.buffer = buffer; rainNode.loop = true;
+    const f = audioCtx.createBiquadFilter(); f.type='highpass'; f.frequency.value = 400;
+    const g = audioCtx.createGain(); g.gain.value = +document.getElementById('rainVol').value || 0;
+    rainNode.connect(f).connect(g).connect(audioCtx.destination);
+    rainNode.start();
+    rainNode._gain = g;
+  }
+  // cafe: very low volume simulated by filtered noise
+  if(!cafeNode){
+    const bufferSize = 2 * audioCtx.sampleRate;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<bufferSize;i++) data[i] = (Math.random()*2-1)*0.3;
+    cafeNode = audioCtx.createBufferSource(); cafeNode.buffer=buffer; cafeNode.loop=true;
+    const f = audioCtx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1000;
+    const g = audioCtx.createGain(); g.gain.value = +document.getElementById('cafeVol').value || 0;
+    cafeNode.connect(f).connect(g).connect(audioCtx.destination);
+    cafeNode.start();
+    cafeNode._gain = g;
+  }
+  // wind: low frequency oscillator for slow swell
+  if(!windNode){
+    const osc = audioCtx.createOscillator(); osc.type='sine'; osc.frequency.value = 0.25;
+    const gain = audioCtx.createGain(); gain.gain.value = 0.0;
+    osc.connect(gain).connect(audioCtx.destination); osc.start();
+    windNode = {osc, gain};
+  }
+  updateVolumes();
+};
+document.getElementById('stopSound').onclick = ()=>{
+  if(whiteNode){ whiteNode.stop(); whiteNode = null; }
+  if(rainNode){ rainNode.stop(); rainNode = null; }
+  if(cafeNode){ cafeNode.stop(); cafeNode = null; }
+  if(windNode){ windNode.osc.stop(); windNode = null; }
+  audioCtx && audioCtx.close().then(()=> audioCtx = null);
+};
+function updateVolumes(){
+  if(whiteNode) whiteNode._gain.gain.value = +document.getElementById('whiteVol').value || 0;
+  if(rainNode) rainNode._gain.gain.value = +document.getElementById('rainVol').value || 0;
+  if(cafeNode) cafeNode._gain.gain.value = +document.getElementById('cafeVol').value || 0;
+  if(windNode) windNode.gain.gain.value = +document.getElementById('windVol').value || 0;
+}
+['rainVol','whiteVol','cafeVol','windVol'].forEach(id=> document.getElementById(id).addEventListener('input', updateVolumes));
+
+/* rabbit actions */
+document.getElementById('feedBtn').onclick = ()=>{ state.rabbit.hunger = Math.max(0, state.rabbit.hunger - 20); state.rabbit.log.push('Fed'); save(); };
+document.getElementById('playBtn').onclick = ()=>{ state.rabbit.joy = Math.min(100, state.rabbit.joy + 18); state.rabbit.xp += 8; state.rabbit.log.push('Played'); save(); };
+document.getElementById('sleepBtn').onclick = ()=>{ state.rabbit.energy = Math.min(100, state.rabbit.energy + 25); state.rabbit.log.push('Slept'); save(); };
+
+/* export/import/reset */
+document.getElementById('exportBtn').onclick = ()=>{ const blob = new Blob([JSON.stringify(state,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='rabbit-hub-export.json'; a.click(); };
+document.getElementById('importFile').addEventListener('change', (e)=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ state=JSON.parse(r.result); save(); alert('Imported'); }catch(e){ alert('Invalid JSON'); } }; r.readAsText(f); });
+document.getElementById('resetBtn').onclick = ()=>{ if(confirm('Clear all local data?')){ state = structuredClone(defaultState); save(); } };
+
+/* notes quick open */
+function escape(s){ return String(s).replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* collage read helper */
+function readFileAsDataURL(file){ return new Promise(res=>{
+  const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.readAsDataURL(file);
+}); }
+
+/* nav */
+document.querySelectorAll('.nav button').forEach(b=> b.addEventListener('click', ()=>{
+  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  const view = b.dataset.view;
+  document.querySelectorAll('.view').forEach(v=> v.style.display = v.id === 'view-'+view ? '' : 'none');
+}));
+
+/* shortcuts */
+document.addEventListener('keydown', (e)=>{
+  if(e.key==='/' ){ e.preventDefault(); document.getElementById('globalSearch').focus(); }
+  if(e.key==='n'){ document.getElementById('noteTitle').focus(); }
+  if(e.key==='m'){ document.getElementById('moodSelect').focus(); }
+  if(e.key==='h'){ document.getElementById('newHabitName').focus(); }
+});
+
+/* initial render & periodic decay */
+function tick(){ // rabbit natural decay & auto-save
+  state.rabbit.hunger = Math.min(100, state.rabbit.hunger + 0.5);
+  state.rabbit.energy = Math.max(0, state.rabbit.energy - 0.2);
+  if(Math.random()<0.01){ state.rabbit.log.push('Chomp'); }
+  save();
+}
+setInterval(tick, 30*1000); // every 30s
+renderAll();
+
+/* expose save for console */
+window._hub = {state, save};
+
+/* small helper: add some demo notes if none */
+if(state.notes.length===0){
+  state.notes.push({id:uid('n'), title:'Welcome', content:'这是你的个人知识库。使用 [[Title]] 来创建链接。', created:Date.now(), updated:new Date().toLocaleString()});
+  save();
+}
+</script>
+</body>
+</html>

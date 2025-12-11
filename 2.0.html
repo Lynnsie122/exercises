@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>刷题记录本 - 算法（本地保存）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --primary:#1abc9c;
+      --primary-dark:#16a085;
+      --accent:#3498db;
+      --bg:#f5f7fb;
+      --card-bg:#ffffff;
+      --text-main:#23303a;
+      --text-sub:#60707a;
+      --border:#e6eef2;
+      --radius:12px;
+      --shadow:0 12px 30px rgba(15,35,52,0.06);
+      --base-font:16px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family: Inter, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      background: linear-gradient(180deg,#f7fbfc 0%,#ffffff 100%);
+      color:var(--text-main);
+      font-size:var(--base-font);
+      line-height:1.5;
+      padding-bottom:40px;
+    }
+    header{position:sticky;top:0;background:rgba(255,255,255,0.95);backdrop-filter: blur(6px);border-bottom:1px solid rgba(230,238,242,0.9);z-index:50}
+    .nav{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:14px 18px}
+    .brand{display:flex;gap:12px;align-items:center}
+    .brand-logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px}
+    .nav-links{display:flex;gap:8px;align-items:center}
+    .nav-btn{background:transparent;border:none;padding:8px 12px;border-radius:999px;color:var(--text-sub);cursor:pointer;font-weight:600}
+    .nav-btn.active{background:#fff;color:var(--primary-dark);box-shadow:0 6px 18px rgba(22,160,133,0.12);border:1px solid rgba(26,188,156,0.08)}
+    main{max-width:1200px;margin:24px auto;padding:0 18px}
+    .card{background:var(--card-bg);border-radius:18px;padding:22px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,0.9)}
+    .section{display:none}
+    .section.active{display:block}
+    .section-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+    .section-title{font-size:20px;font-weight:800}
+    .home-grid{display:grid;grid-template-columns:2fr 1fr;gap:18px}
+    .hero-title{font-size:28px;font-weight:800;margin-bottom:10px}
+    .hero-desc{color:var(--text-sub);font-size:15px;margin-bottom:12px}
+    .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;padding:10px 18px;border-radius:999px;font-weight:700;cursor:pointer}
+    .tiny-btn{padding:6px 9px;border-radius:8px;border:1px solid rgba(35,48,58,0.06);background:#fff;cursor:pointer;font-size:13px}
+    input[type=text], select, textarea, input[type=date]{
+      width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#fbfdff;font-size:15px;outline:none;
+    }
+    textarea{min-height:120px;resize:vertical}
+    .list{margin-top:12px}
+    .list-item{display:flex;justify-content:space-between;align-items:flex-start;padding:12px;border-radius:10px;background:rgba(255,255,255,0.98);border:1px solid rgba(230,238,242,0.9);margin-bottom:10px;gap:12px}
+    .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
+    .calendar-day{height:72px;border-radius:10px;text-align:center;padding-top:8px;position:relative;border:1px solid transparent;background:#fff}
+    .calendar-day.out-month{color:rgba(96,112,122,0.4);background:transparent;border:1px dashed rgba(230,238,242,0.7)}
+    .calendar-day-number{font-weight:700;font-size:15px}
+    .calendar-dot{width:10px;height:10px;border-radius:50%;margin:8px auto;background:var(--border)}
+    .calendar-dot.active{background:linear-gradient(135deg,var(--primary),var(--accent));box-shadow:0 0 0 6px rgba(26,188,156,0.12)}
+    .calendar-day.today{border:2px solid rgba(26,188,156,0.25);box-shadow:inset 0 0 0 4px rgba(26,188,156,0.03)}
+    /* LeetCode-like view modal */
+    .overlay{position:fixed;inset:0;background:rgba(10,20,30,0.45);display:flex;align-items:flex-start;justify-content:center;padding:40px;z-index:200}
+    .editor-modal{width:1100px;max-width:96%;background:#fff;border-radius:12px;overflow:hidden;display:flex;box-shadow:0 18px 50px rgba(10,20,30,0.25)}
+    .modal-left{flex:1;padding:20px;min-width:360px;border-right:1px solid rgba(230,238,242,0.9);max-height:80vh;overflow:auto}
+    .modal-right{flex:1.2;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:360px}
+    .code-area{flex:1;border-radius:8px;border:1px solid rgba(230,238,242,0.9);background:#0f1720;color:#e6eef2;padding:12px;font-family:monospace;min-height:420px;overflow:auto}
+    .code-toolbar{display:flex;gap:8px;align-items:center}
+    .resource-list{margin-top:12px}
+    .resource-item{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;border:1px solid rgba(230,238,242,0.9);background:#fff;margin-bottom:8px}
+    @media (max-width:980px){ .home-grid{grid-template-columns:1fr} .modal-left{min-width:280px} }
+  </style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <div class="brand">
+      <div class="brand-logo">Q</div>
+      <div>
+        <div class="brand-text-main">刷题记录本 · 算法</div>
+        <div style="font-size:13px;color:var(--text-sub)">电脑端 · 本地保存（localStorage）</div>
+      </div>
+    </div>
+    <div class="nav-links">
+      <button class="nav-btn active" data-target="home">🏠 首页</button>
+      <button class="nav-btn" data-target="add">➕ 添加题目</button>
+      <button class="nav-btn" data-target="category">📂 分类</button>
+      <button class="nav-btn" data-target="calendar">📅 日历</button>
+      <button class="nav-btn" data-target="notes">📝 心得</button>
+      <button class="nav-btn" data-target="resource">📚 资源</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- HOME -->
+  <section id="home" class="section active">
+    <div class="card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">算法刷题 · 记录与复盘</div>
+          <div style="color:var(--text-sub);margin-top:6px">默认分类：算法（动态规划、图论、贪心等），数据保存在本地浏览器。</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+          <div style="font-size:13px;color:var(--text-sub)">本地数据键：<code>algo_problems</code> / <code>algo_notes</code> / <code>algo_calendar</code> / <code>algo_resources</code></div>
+          <div>
+            <button class="btn-primary" onclick="switchSection('add')">新增题目</button>
+            <button class="tiny-btn" onclick="switchSection('calendar')">查看日历</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="home-grid">
+        <div>
+          <div class="hero-title">保持节奏 · 深入复盘</div>
+          <div class="hero-desc">把每道题的来源、核心思路、易错点和代码记录下来，方便日后复盘。</div>
+
+          <div class="card" style="margin-top:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div style="font-weight:800">最近题目</div>
+              <div style="color:var(--text-sub);font-size:13px" id="home-count">共 0 道题</div>
+            </div>
+            <div id="home-list" class="list" style="margin-top:12px"></div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="card">
+            <div style="font-weight:800">统计</div>
+            <div style="margin-top:10px;color:var(--text-sub)">
+              总题量：<span id="stat-total">0</span><br>
+              DP：<span id="stat-dp">0</span> · 贪心：<span id="stat-greedy">0</span> · 图论：<span id="stat-graph">0</span> · 数据结构：<span id="stat-ds">0</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div style="font-weight:800">快速提示</div>
+            <div style="margin-top:8px;color:var(--text-sub)">
+              - 每道题可在代码区保存你的解法（支持多语言切换）。<br>
+              - 添加题目时勾选“为今天打卡”会把该题与当日记录关联。<br>
+              - 日历点击某日会显示该日具体题目。
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADD -->
+  <section id="add" class="section">
+    <div class="card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">添加新的题目</div>
+          <div style="color:var(--text-sub)">仿 LeetCode：记录描述/思路/错因，并能保存代码。</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:18px">
+        <div>
+          <label class="form-label">题目名称 / 编号 <span style="color:#e74c3c">*</span></label>
+          <input type="text" id="problem-title" placeholder="例：LeetCode 53. 最大子数组和" />
+
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <input type="text" id="problem-source" placeholder="来源（LeetCode / 题单）" />
+            <select id="problem-level"><option value="">难度</option><option>简单</option><option>中等</option><option>困难</option></select>
+            <select id="problem-status"><option>已掌握</option><option>做对但不熟</option><option>做错 / 未完成</option><option>待复习</option></select>
+          </div>
+
+          <div style="margin-top:8px">
+            <label class="form-label">标签（逗号分隔）</label>
+            <input type="text" id="problem-tags" placeholder="例如：动态规划, 区间DP" />
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="tiny-btn" onclick="quickTag('problem-tags','动态规划')">动态规划</button>
+              <button class="tiny-btn" onclick="quickTag('problem-tags','图论')">图论</button>
+              <button class="tiny-btn" onclick="quickTag('problem-tags','贪心')">贪心</button>
+              <button class="tiny-btn" onclick="quickTag('problem-tags','数据结构')">数据结构</button>
+            </div>
+          </div>
+
+          <div style="margin-top:8px">
+            <label class="form-label">题目描述 / 提示</label>
+            <textarea id="problem-desc" placeholder="把题目描述粘贴在这里（可复制自 LeetCode）"></textarea>
+          </div>
+
+          <div style="margin-top:8px">
+            <label class="form-label">解题思路（自己的话） <span style="color:#e74c3c">*</span></label>
+            <textarea id="problem-idea" placeholder="核心思路、关键状态、复杂度等"></textarea>
+          </div>
+
+          <div style="margin-top:8px">
+            <label class="form-label">错误总结 / 易错点</label>
+            <textarea id="problem-mistake" placeholder="错因、边界、需要注意的点"></textarea>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:12px;margin-top:10px">
+            <div><input type="checkbox" id="problem-check-calendar" /> <label for="problem-check-calendar" style="color:var(--text-sub)">同时为今天打卡（并关联本题）</label></div>
+            <div style="margin-left:auto;color:var(--text-sub)">创建时间会自动记录并显示为 yyyy/mm/dd</div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+            <div style="color:var(--text-sub)">建议：做完题就记录，代码写在右侧并保存。</div>
+            <div>
+              <button class="tiny-btn" onclick="resetProblemForm()">清空</button>
+              <button class="btn-primary" onclick="saveProblem()">保存并写入本地</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div style="font-weight:700">代码示例（保存为该题代码）</div>
+            <div style="margin-top:8px">
+              <label style="font-size:13px;color:var(--text-sub)">语言</label>
+              <select id="code-lang">
+                <option>JavaScript</option>
+                <option>Python</option>
+                <option>Java</option>
+                <option>C++</option>
+              </select>
+            </div>
+            <div style="margin-top:8px">
+              <textarea id="problem-code" class="code-area" placeholder="// 在此处写代码，保存到题目中"></textarea>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+              <button class="tiny-btn" onclick="loadSampleCode()">插入示例</button>
+              <button class="tiny-btn" onclick="saveCodeToDraft()">保存代码到草稿（仅本页）</button>
+            </div>
+            <div style="margin-top:12px;color:var(--text-sub)">保存题目时，代码与语言会保存到该题记录中（仅本地）。</div>
+          </div>
+
+          <div style="margin-top:12px" class="card">
+            <div style="font-weight:800">预览</div>
+            <div style="margin-top:8px;color:var(--text-sub)">
+              题目创建后可在「首页」与「分类」中查看，且可在日历中查看当天关联题目并打开查看/编辑代码。
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORY -->
+  <section id="category" class="section">
+    <div class="card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">题目分类</div>
+          <div style="color:var(--text-sub)">按标签筛选题目</div>
+        </div>
+      </div>
+      <div id="category-list" class="list"></div>
+    </div>
+  </section>
+
+  <!-- CALENDAR -->
+  <section id="calendar" class="section">
+    <div class="card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">日历 · 刷题打卡</div>
+          <div style="color:var(--text-sub)">点击某天可在右侧看到该天具体做了哪些题（按添加时的关联）。</div>
+        </div>
+        <div>
+          <button class="tiny-btn" onclick="prevMonth()">‹ 上月</button>
+          <button class="tiny-btn" onclick="nextMonth()">下月 ›</button>
+          <button class="tiny-btn" onclick="goToday()">今天</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:18px">
+        <div>
+          <div id="calendar-month" style="font-weight:800;margin-bottom:8px"></div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;font-weight:700;color:var(--text-sub);margin-bottom:6px">
+            <div style="text-align:center">一</div><div style="text-align:center">二</div><div style="text-align:center">三</div><div style="text-align:center">四</div><div style="text-align:center">五</div><div style="text-align:center">六</div><div style="text-align:center">日</div>
+          </div>
+          <div id="calendar-grid" class="calendar-grid"></div>
+        </div>
+
+        <div>
+          <div class="card" style="margin-bottom:12px">
+            <div style="font-weight:800">选中日期记录</div>
+            <div id="calendar-info" style="margin-top:8px;color:var(--text-sub)">请选择某一天查看详情</div>
+          </div>
+
+          <div class="card">
+            <div style="font-weight:800">近期打卡</div>
+            <div id="calendar-log" style="margin-top:10px;color:var(--text-sub)"></div>
+            <div style="margin-top:10px">
+              <button class="tiny-btn" onclick="clearCalendar()">清除全部日历打卡</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NOTES -->
+  <section id="notes" class="section">
+    <div class="card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">心得感悟</div>
+          <div style="color:var(--text-sub)">记录学习笔记、每日总结或复盘要点，保存在本地。</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:18px">
+        <div>
+          <input type="text" id="note-title" placeholder="标题（可选）" />
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <input type="date" id="note-date" />
+            <input type="text" id="note-related" placeholder="关联题目（可写标题/编号）" />
+          </div>
+          <div style="margin-top:8px">
+            <textarea id="note-content" placeholder="写下你的想法、错因分析、改进计划"></textarea>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+            <button class="tiny-btn" onclick="resetNoteForm()">清空</button>
+            <button class="btn-primary" onclick="saveNote()">保存心得</button>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-weight:800;margin-bottom:8px">历史笔记</div>
+          <div id="note-history" style="max-height:420px;overflow:auto"></div>
+          <div style="margin-top:10px;display:flex;gap:8px">
+            <button class="tiny-btn" onclick="exportData()">导出数据</button>
+            <button class="tiny-btn" onclick="importData()">导入数据（覆盖）</button>
+            <button class="tiny-btn" onclick="clearAllData()" style="color:#b33">清空所有本地数据</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESOURCE -->
+  <section id="resource" class="section">
+    <div class="card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">资源 · 自定义添加</div>
+          <div style="color:var(--text-sub)">你可以添加/删除/打开自己的刷题资源（本地保存）。</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px">
+        <div style="flex:1">
+          <input type="text" id="resource-title" placeholder="资源名称（例如：LeetCode 题单）" />
+          <input type="text" id="resource-url" placeholder="链接（https://...）" style="margin-top:8px" />
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="tiny-btn" onclick="addResource()">添加资源</button>
+            <button class="tiny-btn" onclick="clearResourceForm()">清空</button>
+          </div>
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:800">资源列表</div>
+          <div id="resource-list" class="resource-list"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- 编辑/查看题目模态（模拟 LeetCode 题目页：左侧题目，右侧代码） -->
+<div id="problem-modal-root" style="display:none"></div>
+
+<script>
+  // ---------- helpers ----------
+  const STORAGE_KEYS = {
+    problems: 'algo_problems',
+    notes: 'algo_notes',
+    calendar: 'algo_calendar', // map date -> array of problem ids (['p_...'])
+    resources: 'algo_resources'
+  };
+
+  function saveJSON(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+  function loadJSON(k, def){ try{ const r=localStorage.getItem(k); return r?JSON.parse(r):def; }catch(e){return def;} }
+  function ensureStorage(){ if(!localStorage.getItem(STORAGE_KEYS.problems)) saveJSON(STORAGE_KEYS.problems, []); if(!localStorage.getItem(STORAGE_KEYS.notes)) saveJSON(STORAGE_KEYS.notes, []); if(!localStorage.getItem(STORAGE_KEYS.calendar)) saveJSON(STORAGE_KEYS.calendar, {}); if(!localStorage.getItem(STORAGE_KEYS.resources)) saveJSON(STORAGE_KEYS.resources, []); }
+  ensureStorage();
+
+  // 日期格式化为 yyyy/mm/dd（带斜杠）
+  function ymdSlash(y,m,d){ const mm=String(m).padStart(2,'0'), dd=String(d).padStart(2,'0'); return `${y}/${mm}/${dd}`; }
+  function todayString(){ const t=new Date(); return ymdSlash(t.getFullYear(), t.getMonth()+1, t.getDate()); }
+  function isoToSlash(iso){ if(!iso) return ''; const d=new Date(iso); return ymdSlash(d.getFullYear(), d.getMonth()+1, d.getDate()); }
+  function formatDateToLocale(iso){ if(!iso) return ''; const d=new Date(iso); return d.toLocaleString(); }
+
+  // ---------- 导航 ----------
+  const navButtons = document.querySelectorAll('.nav-btn');
+  const sections = document.querySelectorAll('.section');
+  function switchSection(id){
+    sections.forEach(s=>s.id===id? s.classList.add('active'): s.classList.remove('active'));
+    navButtons.forEach(b=>b.dataset.target===id? b.classList.add('active'): b.classList.remove('active'));
+    window.scrollTo({top:0,behavior:'smooth'});
+    if(id==='home') renderHomeList();
+    if(id==='calendar') renderCalendar(currentDate);
+    if(id==='notes') renderNotes();
+    if(id==='resource') renderResourceList();
+    if(id==='category') renderCategoryList();
+  }
+  navButtons.forEach(b=>b.addEventListener('click', ()=> switchSection(b.dataset.target)));
+
+  // ---------- Problem add/edit ----------
+  function resetProblemForm(){
+    document.getElementById('problem-title').value='';
+    document.getElementById('problem-source').value='';
+    document.getElementById('problem-level').value='';
+    document.getElementById('problem-status').value='已掌握';
+    document.getElementById('problem-tags').value='';
+    document.getElementById('problem-desc').value='';
+    document.getElementById('problem-idea').value='';
+    document.getElementById('problem-mistake').value='';
+    document.getElementById('problem-code').value='';
+    document.getElementById('code-lang').value='JavaScript';
+    document.getElementById('problem-check-calendar').checked=false;
+  }
+
+  function quickTag(id,tag){
+    const input = document.getElementById(id);
+    const cur = input.value.trim();
+    const arr = cur? cur.split(',').map(s=>s.trim()).filter(Boolean):[];
+    if(!arr.includes(tag)) arr.push(tag);
+    input.value = arr.join(', ');
+  }
+
+  function saveProblem(){
+    const title = document.getElementById('problem-title').value.trim();
+    if(!title){ alert('请填写题目名称/编号'); return; }
+    const code = document.getElementById('problem-code').value;
+    const lang = document.getElementById('code-lang').value;
+    const p = {
+      id: 'p_' + Date.now(),
+      title,
+      source: document.getElementById('problem-source').value.trim(),
+      level: document.getElementById('problem-level').value,
+      status: document.getElementById('problem-status').value,
+      tags: document.getElementById('problem-tags').value.split(',').map(s=>s.trim()).filter(Boolean),
+      desc: document.getElementById('problem-desc').value.trim(),
+      idea: document.getElementById('problem-idea').value.trim(),
+      mistake: document.getElementById('problem-mistake').value.trim(),
+      code: code || '',
+      codeLang: lang || 'JavaScript',
+      createdAt: new Date().toISOString()
+    };
+    const list = loadJSON(STORAGE_KEYS.problems, []);
+    list.unshift(p);
+    saveJSON(STORAGE_KEYS.problems, list);
+
+    // 如果勾选为今天打卡 -> 在 calendar 中把这个问题 id 关联到今天
+    if(document.getElementById('problem-check-calendar').checked){
+      const key = todayString();
+      const cal = loadJSON(STORAGE_KEYS.calendar, {});
+      // 兼容老格式：如果是数字则转成数组
+      if(typeof cal[key] === 'number') cal[key] = []; 
+      cal[key] = cal[key] || [];
+      cal[key].unshift(p.id);
+      saveJSON(STORAGE_KEYS.calendar, cal);
+    }
+
+    resetProblemForm();
+    renderHomeList();
+    renderCalendar(currentDate);
+    renderCategoryList();
+    alert('题目已保存到本地（localStorage）。');
+    switchSection('home');
+  }
+
+  // ---------- Home / list / view ----------
+  function escapeHTML(s){ if(!s) return ''; return String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  function renderHomeList(){
+    const container = document.getElementById('home-list');
+    container.innerHTML = '';
+    const list = loadJSON(STORAGE_KEYS.problems, []);
+    document.getElementById('home-count').innerText = `共 ${list.length} 道题`;
+    const slice = list.slice(0, 12);
+    slice.forEach(p=>{
+      const div = document.createElement('div'); div.className='list-item';
+      const tagText = p.tags && p.tags.length? p.tags.join('，') : '—';
+      div.innerHTML = `
+        <div style="flex:1">
+          <div style="font-weight:700">${escapeHTML(p.title)}</div>
+          <div style="color:var(--text-sub);margin-top:6px">${tagText} · ${p.level||'—'} · ${isoToSlash(p.createdAt)}</div>
+          <div style="margin-top:8px;color:var(--text-sub);white-space:pre-wrap">${escapeHTML((p.idea||'').slice(0,220))}${(p.idea||'').length>220?'...':''}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+          <button class="tiny-btn" onclick="openProblemModal('${p.id}')">查看 / 编辑</button>
+          <button class="tiny-btn" onclick="deleteProblem('${p.id}')">删除</button>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+    renderStats();
+  }
+
+  function deleteProblem(id){
+    if(!confirm('确认删除该题目？此操作不可恢复。')) return;
+    let list = loadJSON(STORAGE_KEYS.problems, []);
+    list = list.filter(x=>x.id!==id);
+    saveJSON(STORAGE_KEYS.problems, list);
+    // 同时从 calendar 中移除
+    const cal = loadJSON(STORAGE_KEYS.calendar, {});
+    Object.keys(cal).forEach(k=>{
+      if(Array.isArray(cal[k])) cal[k] = cal[k].filter(pid=>pid!==id);
+      // 清空空数组
+      if(Array.isArray(cal[k]) && cal[k].length===0) delete cal[k];
+    });
+    saveJSON(STORAGE_KEYS.calendar, cal);
+    renderHomeList(); renderCalendar(currentDate); renderNotes(); renderCategoryList();
+  }
+
+  function renderStats(){
+    const list = loadJSON(STORAGE_KEYS.problems, []);
+    document.getElementById('stat-total').innerText = list.length;
+    const tagCounts = { '动态规划':0, '贪心':0, '图论':0, '数据结构':0 };
+    list.forEach(p=>{ (p.tags||[]).forEach(t=>{ if(tagCounts[t]!==undefined) tagCounts[t]++; }); });
+    document.getElementById('stat-dp').innerText = tagCounts['动态规划'] || 0;
+    document.getElementById('stat-greedy').innerText = tagCounts['贪心'] || 0;
+    document.getElementById('stat-graph').innerText = tagCounts['图论'] || 0;
+    document.getElementById('stat-ds').innerText = tagCounts['数据结构'] || 0;
+  }
+
+  // ---------- Category (按标签) ----------
+  function renderCategoryList(){
+    const container = document.getElementById('category-list');
+    container.innerHTML = '';
+    const list = loadJSON(STORAGE_KEYS.problems, []);
+    // 收集标签
+    const tags = {};
+    list.forEach(p=> (p.tags||[]).forEach(t=> tags[t]= (tags[t]||0) + 1 ));
+    const arr = Object.keys(tags).sort((a,b)=>tags[b]-tags[a]);
+    if(arr.length===0){ container.innerHTML = '<div style="color:var(--text-sub)">暂无标签</div>'; return; }
+    arr.forEach(t=>{
+      const div = document.createElement('div'); div.className='list-item';
+      div.innerHTML = `
+        <div style="flex:1">
+          <div style="font-weight:700">${escapeHTML(t)}</div>
+          <div style="color:var(--text-sub);margin-top:6px">${tags[t]} 道题</div>
+        </div>
+        <div style="display:flex;align-items:center">
+          <button class="tiny-btn" onclick="filterByTag('${t}')">查看</button>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  function filterByTag(tag){
+    const list = loadJSON(STORAGE_KEYS.problems, []);
+    const filtered = list.filter(p=> (p.tags||[]).includes(tag) );
+    if(filtered.length===0){ alert('当前没有该标签的题目'); return; }
+    // 弹窗显示列表
+    let html = `<div style="padding:18px;font-family:system-ui"><h2>标签：${escapeHTML(tag)}</h2>`;
+    filtered.forEach(p=> html += `<div style="margin-top:12px"><div style="font-weight:700">${escapeHTML(p.title)}</div><div style="color:#666;margin-top:6px">${escapeHTML((p.idea||'').slice(0,180))}</div><div style="margin-top:6px"><button onclick="window.opener && window.opener.openProblemModal('${p.id}')" class="tiny-btn">打开</button></div></div>`);
+    html += '</div>';
+    const w = window.open('','_blank','width=800,height=600'); w.document.write(html); w.document.title = '标签：' + tag;
+  }
+
+  // ---------- Calendar ----------
+  let currentDate = new Date();
+  const calendarGrid = document.getElementById('calendar-grid');
+  const calendarMonthLabel = document.getElementById('calendar-month');
+
+  function renderCalendar(date){
+    const year = date.getFullYear(), month = date.getMonth();
+    calendarMonthLabel.innerText = `${year} 年 ${month+1} 月`;
+    calendarGrid.innerHTML = '';
+    // leading days
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month+1, 0);
+    const firstWeekday = (firstDay.getDay()+6)%7; // 0=Mon
+    const leading = firstWeekday;
+    const prevMonthLastDate = new Date(year, month, 0).getDate();
+    for(let i=0;i<leading;i++){
+      const dayNum = prevMonthLastDate - leading + 1 + i;
+      const cell = createDayCell(dayNum, false);
+      calendarGrid.appendChild(cell);
+    }
+    // days
+    const daysInMonth = lastDay.getDate();
+    const cal = loadJSON(STORAGE_KEYS.calendar, {});
+    const today = new Date();
+    for(let d=1; d<=daysInMonth; d++){
+      const isToday = (year===today.getFullYear() && month===today.getMonth() && d===today.getDate());
+      const key = ymdSlash(year, month+1, d);
+      let count = 0;
+      if(cal[key]){
+        if(Array.isArray(cal[key])) count = cal[key].length;
+        else if(typeof cal[key] === 'number') count = cal[key];
+      }
+      const cell = createDayCell(d, true, count, isToday, key);
+      calendarGrid.appendChild(cell);
+    }
+    // trailing to keep 6 rows
+    const totalCells = leading + daysInMonth;
+    const minTotal = 7 * 6;
+    const trailing = (minTotal - totalCells) > 0 ? (minTotal - totalCells) : 0;
+    for(let i=1;i<=trailing;i++){
+      calendarGrid.appendChild(createDayCell(i,false));
+    }
+    renderCalendarLog();
+  }
+
+  function createDayCell(dayNum, inMonth, count=0, isToday=false, key){
+    const cell = document.createElement('div'); cell.className='calendar-day';
+    if(!inMonth) cell.classList.add('out-month'); else cell.classList.add('in-month');
+    if(isToday) cell.classList.add('today');
+    const num = document.createElement('div'); num.className='calendar-day-number'; num.innerText = dayNum; cell.appendChild(num);
+    const dot = document.createElement('div'); dot.className='calendar-dot'; if(count>0 && inMonth) dot.classList.add('active'); cell.appendChild(dot);
+    if(inMonth){
+      cell.style.cursor='pointer';
+      cell.addEventListener('click', ()=> selectCalendarDay(key));
+    }
+    return cell;
+  }
+
+  function prevMonth(){ currentDate.setMonth(currentDate.getMonth()-1); renderCalendar(currentDate); }
+  function nextMonth(){ currentDate.setMonth(currentDate.getMonth()+1); renderCalendar(currentDate); }
+  function goToday(){ currentDate = new Date(); renderCalendar(currentDate); }
+
+  function selectCalendarDay(key){
+    const cal = loadJSON(STORAGE_KEYS.calendar, {});
+    const arr = cal[key] || [];
+    const info = document.getElementById('calendar-info');
+    if(!arr || arr.length===0){
+      info.innerHTML = `<div style="font-weight:800">${key}</div><div style="margin-top:8px;color:var(--text-sub)">当日无关联题目</div><div style="margin-top:8px"><button class="tiny-btn" onclick="toggleCalendar('${key}')">标记为已打卡</button></div>`;
+      return;
+    }
+    // 显示该日做的具体题目（通过 id 关联）
+    const problems = loadJSON(STORAGE_KEYS.problems, []);
+    let html = `<div style="font-weight:800">${key}</div><div style="margin-top:8px;color:var(--text-sub)">共 ${arr.length} 道题</div><div style="margin-top:8px">`;
+    arr.forEach(pid=>{
+      const p = problems.find(x=>x.id===pid);
+      if(p){
+        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;margin-bottom:6px;background:#fbfdff;border:1px solid rgba(230,238,242,0.9)"><div><div style="font-weight:700">${escapeHTML(p.title)}</div><div style="color:var(--text-sub);font-size:13px">${(p.tags||[]).join('，') || '—'} · ${p.level||'—'}</div></div><div><button class="tiny-btn" onclick="openProblemModal('${p.id}')">打开</button></div></div>`;
+      } else {
+        html += `<div style="padding:8px;color:var(--text-sub)">已关联题目（ID：${escapeHTML(pid)}）但本地已删除</div>`;
+      }
+    });
+    html += `</div><div style="margin-top:8px"><button class="tiny-btn" onclick="clearDay('${key}')">移除该日全部关联</button></div>`;
+    info.innerHTML = html;
+  }
+
+  function toggleCalendar(key){
+    const cal = loadJSON(STORAGE_KEYS.calendar, {});
+    if(!cal[key]) cal[key] = []; // 标记为空数组表示已打卡但无题目
+    saveJSON(STORAGE_KEYS.calendar, cal);
+    renderCalendar(currentDate);
+    document.getElementById('calendar-info').innerHTML = `<div style="color:var(--text-sub)">已更新 ${key}</div>`;
+  }
+
+  function clearDay(key){
+    if(!confirm('确认移除该日所有关联题目？')) return;
+    const cal = loadJSON(STORAGE_KEYS.calendar, {});
+    delete cal[key];
+    saveJSON(STORAGE_KEYS.calendar, cal);
+    renderCalendar(currentDate);
+    document.getElementById('calendar-info').innerHTML = `<div style="color:var(--text-sub)">${key} 已清除</div>`;
+  }
+
+  function clearCalendar(){
+    if(!confirm('确认清除所有日历打卡？此操作不可逆。')) return;
+    saveJSON(STORAGE_KEYS.calendar, {});
+    renderCalendar(currentDate);
+  }
+
+  function renderCalendarLog(){
+    const log = document.getElementById('calendar-log');
+    log.innerHTML = '';
+    const cal = loadJSON(STORAGE_KEYS.calendar, {});
+    const keys = Object.keys(cal).sort((a,b)=>b.localeCompare(a)).slice(0,8);
+    if(keys.length===0){ log.innerText = '暂无打卡记录'; return; }
+    keys.forEach(k=>{
+      const val = cal[k];
+      const count = Array.isArray(val)? val.length : (typeof val === 'number' ? val : 0);
+      const div = document.createElement('div'); div.style.padding='6px 0'; div.style.borderBottom='1px dashed rgba(230,238,242,0.9)';
+      div.innerHTML = `<div style="display:flex;justify-content:space-between"><div>${k}</div><div>${count} 题</div></div>`;
+      log.appendChild(div);
+    });
+  }
+
+  // ---------- Notes ----------
+  function resetNoteForm(){ document.getElementById('note-title').value=''; document.getElementById('note-date').value=''; document.getElementById('note-related').value=''; document.getElementById('note-content').value=''; }
+  function saveNote(){
+    const content = document.getElementById('note-content').value.trim(); if(!content){ alert('请填写内容'); return; }
+    const note = { id:'n_'+Date.now(), title:document.getElementById('note-title').value.trim(), date: document.getElementById('note-date').value || todayString(), related: document.getElementById('note-related').value.trim(), content, createdAt:new Date().toISOString() };
+    const list = loadJSON(STORAGE_KEYS.notes, []); list.unshift(note); saveJSON(STORAGE_KEYS.notes, list); resetNoteForm(); renderNotes(); alert('笔记已保存到本地。'); switchSection('notes');
+  }
+  function renderNotes(){
+    const container = document.getElementById('note-history'); container.innerHTML = '';
+    const list = loadJSON(STORAGE_KEYS.notes, []);
+    if(list.length===0){ container.innerHTML = '<div style="color:var(--text-sub)">暂无笔记</div>'; return; }
+    list.forEach(n=>{
+      const div = document.createElement('div'); div.style.padding='8px'; div.style.borderBottom='1px dashed rgba(230,238,242,0.9)';
+      div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:700">${escapeHTML(n.title || (n.content.slice(0,30)))}</div><div style="color:var(--text-sub);font-size:13px">${n.date} · 关联：${escapeHTML(n.related||'—')}</div></div><div style="display:flex;gap:8px"><button class="tiny-btn" onclick="viewNote('${n.id}')">查看</button><button class="tiny-btn" onclick="deleteNote('${n.id}')">删除</button></div></div><div style="margin-top:8px;color:var(--text-sub);white-space:pre-wrap">${escapeHTML(n.content.slice(0,200))}${n.content.length>200?'...':''}</div>`;
+      container.appendChild(div);
+    });
+  }
+  function viewNote(id){ const list = loadJSON(STORAGE_KEYS.notes, []); const n = list.find(x=>x.id===id); if(!n) return alert('未找到该笔记'); const w = window.open('','_blank','width=700,height=600'); w.document.write(`<div style="font-family:system-ui;padding:18px"><h2>${escapeHTML(n.title||'笔记')}</h2><div style="color:#666;margin-top:8px">${n.date} · 关联：${escapeHTML(n.related||'—')}</div><div style="margin-top:12px;white-space:pre-wrap">${escapeHTML(n.content)}</div><div style="margin-top:12px;color:#888">创建：${formatDateToLocale(n.createdAt)}</div></div>`); }
+  function deleteNote(id){ if(!confirm('删除该笔记？')) return; let list = loadJSON(STORAGE_KEYS.notes, []); list = list.filter(x=>x.id!==id); saveJSON(STORAGE_KEYS.notes, list); renderNotes(); }
+
+  // ---------- Resources (可自定义) ----------
+  function clearResourceForm(){ document.getElementById('resource-title').value=''; document.getElementById('resource-url').value=''; }
+  function addResource(){
+    const title = document.getElementById('resource-title').value.trim();
+    const url = document.getElementById('resource-url').value.trim();
+    if(!title || !url){ alert('请填写名称与链接'); return; }
+    const res = { id:'r_'+Date.now(), title, url, createdAt:new Date().toISOString() };
+    const list = loadJSON(STORAGE_KEYS.resources, []); list.unshift(res); saveJSON(STORAGE_KEYS.resources, list); clearResourceForm(); renderResourceList(); alert('已添加资源');
+  }
+  function renderResourceList(){
+    const container = document.getElementById('resource-list'); container.innerHTML = '';
+    const list = loadJSON(STORAGE_KEYS.resources, []);
+    if(list.length===0){ container.innerHTML = '<div style="color:var(--text-sub)">暂无资源</div>'; return; }
+    list.forEach(r=>{
+      const div = document.createElement('div'); div.className='resource-item';
+      div.innerHTML = `<div><div style="font-weight:700">${escapeHTML(r.title)}</div><div style="color:var(--text-sub);font-size:13px">${escapeHTML(isoToSlash(r.createdAt))}</div></div><div style="display:flex;gap:6px"><a class="tiny-btn" href="${escapeHTML(r.url)}" target="_blank">打开</a><button class="tiny-btn" onclick="deleteResource('${r.id}')">删除</button></div>`;
+      container.appendChild(div);
+    });
+  }
+  function deleteResource(id){ if(!confirm('删除该资源？')) return; let list = loadJSON(STORAGE_KEYS.resources, []); list = list.filter(x=>x.id!==id); saveJSON(STORAGE_KEYS.resources, list); renderResourceList(); }
+
+  // ---------- 导出/导入/清空 ----------
+  function exportData(){
+    const data = { problems: loadJSON(STORAGE_KEYS.problems, []), notes: loadJSON(STORAGE_KEYS.notes, []), calendar: loadJSON(STORAGE_KEYS.calendar, {}), resources: loadJSON(STORAGE_KEYS.resources, []) };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url; a.download = 'algo_data_export_'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'_')+'.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  }
+  function importData(){
+    const input = document.createElement('input'); input.type='file'; input.accept='application/json';
+    input.onchange = e=>{
+      const file = e.target.files[0]; if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ev=>{
+        try{
+          const obj = JSON.parse(ev.target.result);
+          if(confirm('导入将覆盖现有本地数据，确定继续？')){
+            saveJSON(STORAGE_KEYS.problems, obj.problems || []);
+            saveJSON(STORAGE_KEYS.notes, obj.notes || []);
+            saveJSON(STORAGE_KEYS.calendar, obj.calendar || {});
+            saveJSON(STORAGE_KEYS.resources, obj.resources || []);
+            alert('导入成功');
+            renderHomeList(); renderNotes(); renderCalendar(currentDate); renderResourceList(); renderCategoryList();
+          }
+        }catch(err){ alert('导入文件无效：' + err.message); }
+      }; reader.readAsText(file);
+    };
+    input.click();
+  }
+  function clearAllData(){ if(!confirm('确认清空所有本地数据？此操作不可恢复。')) return; localStorage.removeItem(STORAGE_KEYS.problems); localStorage.removeItem(STORAGE_KEYS.notes); localStorage.removeItem(STORAGE_KEYS.calendar); localStorage.removeItem(STORAGE_KEYS.resources); ensureStorage(); renderHomeList(); renderNotes(); renderCalendar(currentDate); renderResourceList(); renderCategoryList(); }
+
+  // ---------- Problem modal (LeetCode-like) ----------
+  const modalRoot = document.getElementById('problem-modal-root');
+  function openProblemModal(id){
+    const problems = loadJSON(STORAGE_KEYS.problems, []);
+    const p = problems.find(x=>x.id===id);
+    if(!p) return alert('未找到该题目');
+    renderProblemModal(p);
+  }
+
+  function renderProblemModal(p){
+    modalRoot.innerHTML = '';
+    modalRoot.style.display = 'block';
+    const overlay = document.createElement('div'); overlay.className='overlay';
+    const modal = document.createElement('div'); modal.className='editor-modal';
+    // left: details
+    const left = document.createElement('div'); left.className='modal-left';
+    left.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div><h2 style="margin:0">${escapeHTML(p.title)}</h2><div style="color:var(--text-sub);margin-top:6px">${escapeHTML((p.tags||[]).join('，'))} · ${p.level||'—'}</div></div><div><button class="tiny-btn" id="modal-save-meta">保存</button><button class="tiny-btn" id="modal-close">关闭</button></div></div>
+      <div style="margin-top:12px"><div style="font-weight:700">题目描述</div><div style="margin-top:6px;color:var(--text-sub);white-space:pre-wrap">${escapeHTML(p.desc||'（无描述）')}</div></div>
+      <div style="margin-top:12px"><div style="font-weight:700">解题思路</div><div style="margin-top:6px;white-space:pre-wrap">${escapeHTML(p.idea||'')}</div></div>
+      <div style="margin-top:12px"><div style="font-weight:700">错误总结</div><div style="margin-top:6px;white-space:pre-wrap">${escapeHTML(p.mistake||'')}</div></div>
+      <div style="margin-top:12px;color:var(--text-sub)">创建：${isoToSlash(p.createdAt)}</div>
+    `;
+    // right: code editor
+    const right = document.createElement('div'); right.className='modal-right';
+    right.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:8px;align-items:center"><label style="font-size:13px;color:var(--text-sub)">语言</label><select id="modal-code-lang"><option>JavaScript</option><option>Python</option><option>Java</option><option>C++</option></select></div><div style="display:flex;gap:8px"><button class="tiny-btn" id="modal-run">运行（模拟）</button><button class="tiny-btn" id="modal-save-code">保存代码</button></div></div><textarea id="modal-code-area" class="code-area"></textarea><div id="modal-run-output" style="background:#081018;color:#8ff;padding:8px;border-radius:8px;display:none"></div>`;
+    modal.appendChild(left); modal.appendChild(right); overlay.appendChild(modal); modalRoot.appendChild(overlay);
+
+    // fill values
+    document.getElementById('modal-code-area').value = p.code || '';
+    document.getElementById('modal-code-lang').value = p.codeLang || 'JavaScript';
+
+    // handlers
+    document.getElementById('modal-close').addEventListener('click', ()=>{ modalRoot.style.display='none'; modalRoot.innerHTML=''; });
+    document.getElementById('modal-save-code').addEventListener('click', ()=>{
+      const code = document.getElementById('modal-code-area').value;
+      const lang = document.getElementById('modal-code-lang').value;
+      // persist to storage
+      const probs = loadJSON(STORAGE_KEYS.problems, []);
+      const idx = probs.findIndex(x=>x.id===p.id);
+      if(idx>=0){ probs[idx].code = code; probs[idx].codeLang = lang; saveJSON(STORAGE_KEYS.problems, probs); alert('代码已保存到本地'); renderHomeList(); }
+    });
+    document.getElementById('modal-save-meta').addEventListener('click', ()=>{
+      // allow editing idea/mistake/desc via prompt (轻量方式)
+      const probs = loadJSON(STORAGE_KEYS.problems, []);
+      const idx = probs.findIndex(x=>x.id===p.id);
+      if(idx<0) return;
+      const newDesc = prompt('编辑题目描述（多行可粘贴）：', probs[idx].desc || '');
+      if(newDesc!==null) probs[idx].desc = newDesc;
+      const newIdea = prompt('编辑解题思路：', probs[idx].idea || '');
+      if(newIdea!==null) probs[idx].idea = newIdea;
+      const newMistake = prompt('编辑错误总结：', probs[idx].mistake || '');
+      if(newMistake!==null) probs[idx].mistake = newMistake;
+      saveJSON(STORAGE_KEYS.problems, probs);
+      alert('题目信息已更新（已保存）');
+      modalRoot.style.display='none'; modalRoot.innerHTML=''; renderHomeList(); renderCategoryList();
+    });
+    document.getElementById('modal-run').addEventListener('click', ()=>{
+      const out = document.getElementById('modal-run-output'); out.style.display='block'; out.innerText = '运行仅为模拟（此版本不执行用户代码），你可以把测试结果写到此处或手动粘贴。';
+    });
+  }
+
+  // ---------- small actions for add page ----------
+  function loadSampleCode(){ const lang = document.getElementById('code-lang').value; let sample=''; if(lang==='JavaScript') sample = `// JS 示例\nfunction maxSubArray(nums){\n  let cur=0, ans=-Infinity;\n  for(const x of nums){ cur = Math.max(x, cur + x); ans = Math.max(ans, cur); }\n  return ans;\n}\n`; else if(lang==='Python') sample = `# Python 示例\ndef maxSubArray(nums):\n    cur = 0\n    ans = -10**18\n    for x in nums:\n        cur = max(x, cur + x)\n        ans = max(ans, cur)\n    return ans\n`; else if(lang==='Java') sample = `// Java 示例\nclass Solution{ public int maxSubArray(int[] nums){ int cur=0, ans=Integer.MIN_VALUE; for(int x: nums){ cur = Math.max(x, cur+x); ans = Math.max(ans, cur);} return ans; } }\n`; else sample = `// C++ 示例\nint maxSubArray(vector<int>& nums){ int cur=0, ans=INT_MIN; for(int x: nums){ cur=max(x, cur+x); ans=max(ans,cur);} return ans; }\n`; document.getElementById('problem-code').value = sample; }
+
+  function saveCodeToDraft(){ alert('代码已保存在本页（但若不保存题目则不会写入题目记录）'); }
+
+  // ---------- Export/Import initial rendering ----------
+  renderHomeList(); renderNotes(); renderCalendar(currentDate); renderResourceList(); renderCategoryList();
+
+  // ---------- Keyboard shortcuts ----------
+  document.addEventListener('keydown', function(e){ if(e.ctrlKey && e.key==='Enter'){ const active = document.querySelector('.section.active'); if(active && active.id==='notes') saveNote(); if(active && active.id==='add') saveProblem(); } });
+
+</script>
+</body>
+</html>

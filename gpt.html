@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>你的名字 · Personal Site</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="极简而高级的个人主页，展示简介、经验与作品。" />
+  <style>
+    /* ========= 基础设置 ========= */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #f5f6f7;
+      color: #111827;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    img {
+      max-width: 100%;
+      display: block;
+    }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: none;
+    }
+    :root {
+      --bg: #f5f6f7;
+      --bg-elevated: #ffffff;
+      --fg: #111827;
+      --fg-muted: #6b7280;
+      --accent: #0f172a;
+      --border-subtle: #e5e7eb;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.08);
+      --shadow-subtle: 0 1px 3px rgba(15, 23, 42, 0.06);
+      --space-section-y: 72px;
+      --space-section-y-mobile: 56px;
+      --content-max-width: 1120px;
+    }
+
+    /* ========= 布局容器 ========= */
+    .page {
+      flex: 1 0 auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .shell {
+      width: 100%;
+      max-width: var(--content-max-width);
+      margin: 0 auto;
+      padding: 24px 20px 64px;
+    }
+
+    /* ========= 顶部导航 ========= */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      margin: 12px auto 0;
+      max-width: var(--content-max-width);
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: var(--shadow-subtle);
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 16px;
+      z-index: 20;
+    }
+    .nav-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-logo-mark {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, #ffffff, #e5e7eb 40%, #d1d5db 100%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+      position: relative;
+    }
+    .nav-logo-mark::after {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border-radius: inherit;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+    .nav-logo-initials {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #111827;
+    }
+    .nav-name {
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #4b5563;
+    }
+    .nav-links {
+      display: inline-flex;
+      align-items: center;
+      gap: 24px;
+      font-size: 14px;
+      color: #4b5563;
+    }
+    .nav-link {
+      position: relative;
+      padding-bottom: 4px;
+      cursor: pointer;
+    }
+    .nav-link::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 0;
+      height: 1px;
+      background: #111827;
+      transition: width 0.18s ease;
+    }
+    .nav-link:hover::after {
+      width: 100%;
+    }
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: var(--radius-pill);
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      font-size: 13px;
+      color: #111827;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    }
+    .nav-cta-icon {
+      width: 16px;
+      height: 16px;
+    }
+    .nav-cta svg {
+      display: block;
+      width: 16px;
+      height: 16px;
+      stroke-width: 1.8;
+      color: #6b7280;
+    }
+
+    /* ========= Hero 区 ========= */
+    .hero {
+      padding-top: 40px;
+      padding-bottom: var(--space-section-y);
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2.3fr);
+      gap: 40px;
+      align-items: center;
+    }
+    .hero-main-heading {
+      font-size: clamp(32px, 4vw, 40px);
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      margin-bottom: 16px;
+    }
+    .hero-subheading {
+      font-size: 16px;
+      color: var(--fg-muted);
+      max-width: 480px;
+      line-height: 1.7;
+      margin-bottom: 26px;
+    }
+
+    .hero-meta {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .hero-meta-pill {
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-subtle);
+      padding: 5px 12px;
+      font-size: 12px;
+      color: #4b5563;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.9);
+    }
+    .hero-meta-icon {
+      width: 14px;
+      height: 14px;
+      color: #6b7280;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .btn-primary {
+      border-radius: var(--radius-pill);
+      border: 1px solid #111827;
+      background: #111827;
+      color: #f9fafb;
+      padding: 10px 20px;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 14px 32px rgba(15, 23, 42, 0.25);
+    }
+    .btn-secondary {
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-subtle);
+      background: #ffffff;
+      color: #111827;
+      padding: 10px 18px;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-icon {
+      width: 14px;
+      height: 14px;
+      color: #9ca3af;
+    }
+    .hero-summary {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(0, 1fr);
+      gap: 18px;
+      max-width: 420px;
+    }
+    .hero-summary-item {
+      border-radius: 12px;
+      border: 1px solid rgba(209, 213, 219, 0.8);
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.8);
+    }
+    .hero-summary-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+    .hero-summary-value {
+      font-size: 14px;
+      color: #111827;
+    }
+
+    /* 右侧卡片 */
+    .hero-panel {
+      border-radius: var(--radius-lg);
+      background: radial-gradient(circle at 0% 0%, #ffffff, #e5e7eb 50%, #d1d5db 100%);
+      padding: 18px;
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), transparent 40%);
+      pointer-events: none;
+    }
+    .hero-panel-inner {
+      position: relative;
+      z-index: 1;
+      border-radius: calc(var(--radius-lg) - 2px);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      background: rgba(249, 250, 251, 0.8);
+      padding: 16px 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .hero-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+    .hero-panel-title {
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #4b5563;
+    }
+    .hero-panel-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.035);
+    }
+    .hero-panel-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.18);
+    }
+    .hero-panel-status-text {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #4b5563;
+    }
+    .hero-panel-profile {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      align-items: center;
+    }
+    .hero-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      background: linear-gradient(145deg, #e5e7eb, #f9fafb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22);
+    }
+    .hero-avatar-inner {
+      width: 90%;
+      height: 90%;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #111827;
+      background: radial-gradient(circle at 30% 0%, #ffffff, #d1d5db 60%, #9ca3af);
+    }
+    .hero-panel-profile-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .hero-panel-name {
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+    }
+    .hero-panel-role {
+      font-size: 13px;
+      color: #6b7280;
+    }
+    .hero-panel-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .hero-panel-tag {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(209, 213, 219, 0.8);
+      color: #4b5563;
+      background: rgba(255, 255, 255, 0.85);
+    }
+    .hero-panel-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .hero-panel-metric {
+      border-radius: 12px;
+      padding: 10px 10px 9px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(229, 231, 235, 0.9);
+    }
+    .hero-panel-metric-label {
+      font-size: 11px;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 4px;
+    }
+    .hero-panel-metric-value {
+      font-size: 15px;
+      font-weight: 500;
+      color: #111827;
+    }
+    .hero-panel-footer {
+      margin-top: 4px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(209, 213, 219, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .hero-panel-note {
+      font-size: 11px;
+      color: #6b7280;
+    }
+    .hero-panel-link {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #4b5563;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hero-panel-link svg {
+      width: 12px;
+      height: 12px;
+      color: #9ca3af;
+    }
+
+    /* ========= Section 通用 ========= */
+    .section {
+      padding-top: var(--space-section-y);
+    }
+    .section-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+    .section-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .section-kicker {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #9ca3af;
+    }
+    .section-title {
+      font-size: 18px;
+      letter-spacing: -0.03em;
+    }
+    .section-description {
+      font-size: 13px;
+      color: #6b7280;
+      max-width: 360px;
+    }
+
+    /* ========= Experience 区 ========= */
+    .experience-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr);
+      gap: 28px;
+      align-items: flex-start;
+    }
+    .experience-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .experience-card {
+      border-radius: var(--radius-md);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      padding: 14px 16px 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px 16px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+    }
+    .experience-main {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .experience-role {
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    .experience-company {
+      font-size: 13px;
+      color: #4b5563;
+    }
+    .experience-meta {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    .experience-points {
+      font-size: 12px;
+      color: #6b7280;
+      margin: 4px 0 0 0;
+      padding-left: 14px;
+    }
+    .experience-points li + li {
+      margin-top: 2px;
+    }
+    .experience-badge-col {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .experience-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+    }
+    .experience-badge-icon {
+      width: 13px;
+      height: 13px;
+      color: #6b7280;
+    }
+
+    .experience-aside {
+      border-radius: var(--radius-md);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      padding: 16px 16px 14px;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .experience-aside-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #6b7280;
+    }
+    .experience-aside-body {
+      font-size: 13px;
+      color: #4b5563;
+      line-height: 1.7;
+    }
+    .experience-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 2px;
+    }
+    .chip {
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      padding: 4px 8px;
+      font-size: 11px;
+      color: #4b5563;
+    }
+
+    /* ========= Projects / Work ========= */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .project-card {
+      border-radius: var(--radius-md);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      padding: 14px 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+    }
+    .project-tag-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .project-tag {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #9ca3af;
+    }
+    .project-icon-badge {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f9fafb;
+    }
+    .project-icon-badge svg {
+      width: 13px;
+      height: 13px;
+      color: #6b7280;
+    }
+    .project-title {
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    .project-description {
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.6;
+      flex: 1 1 auto;
+    }
+    .project-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+    .project-tech {
+      display: inline-flex;
+      gap: 6px;
+      color: #9ca3af;
+    }
+    .project-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #4b5563;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    .project-link svg {
+      width: 11px;
+      height: 11px;
+      color: #9ca3af;
+    }
+
+    /* ========= Contact ========= */
+    .contact {
+      margin-top: calc(var(--space-section-y) + 8px);
+      border-radius: 24px;
+      border: 1px solid var(--border-subtle);
+      background: radial-gradient(circle at 0% 0%, #ffffff, #e5e7eb 40%, #d1d5db 100%);
+      padding: 20px 18px 18px;
+      box-shadow: 0 20px 55px rgba(15, 23, 42, 0.12);
+      position: relative;
+      overflow: hidden;
+    }
+    .contact-inner {
+      position: relative;
+      z-index: 1;
+      padding: 6px 2px 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1.8fr) minmax(0, 1.4fr);
+      gap: 24px;
+      align-items: center;
+    }
+    .contact-heading {
+      font-size: 18px;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+    .contact-text {
+      font-size: 14px;
+      color: #4b5563;
+      max-width: 420px;
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+    .contact-highlights {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .contact-highlight {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(249, 250, 251, 0.9);
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      font-size: 12px;
+      color: #4b5563;
+    }
+    .contact-highlight svg {
+      width: 14px;
+      height: 14px;
+      color: #9ca3af;
+    }
+    .contact-methods {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 13px;
+      color: #111827;
+    }
+    .contact-method {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(229, 231, 235, 0.95);
+    }
+    .contact-method svg {
+      width: 14px;
+      height: 14px;
+      color: #6b7280;
+    }
+
+    .contact-form-card {
+      border-radius: 18px;
+      background: rgba(249, 250, 251, 0.96);
+      border: 1px solid rgba(229, 231, 235, 0.9);
+      padding: 14px 14px 12px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .contact-form-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .contact-form-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #6b7280;
+    }
+    .contact-form-status {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .field-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 11px;
+      color: #6b7280;
+    }
+    .field-label {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+    .field-input, .field-textarea {
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-family: inherit;
+      background: #ffffff;
+      color: #111827;
+      outline: none;
+    }
+    .field-textarea {
+      border-radius: 12px;
+      min-height: 70px;
+      resize: vertical;
+      padding: 7px 10px;
+    }
+    .field-input::placeholder, .field-textarea::placeholder {
+      color: #9ca3af;
+    }
+    .contact-form-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 2px;
+    }
+    .contact-form-hint {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .contact-submit {
+      border-radius: 999px;
+      border: 1px solid #111827;
+      background: #111827;
+      color: #f9fafb;
+      padding: 7px 14px;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .contact-submit svg {
+      width: 12px;
+      height: 12px;
+      color: #e5e7eb;
+    }
+
+    /* ========= 底部 ========= */
+    .footer {
+      flex-shrink: 0;
+      border-top: 1px solid rgba(209, 213, 219, 0.8);
+      padding: 16px 20px 18px;
+      font-size: 11px;
+      color: #9ca3af;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      max-width: var(--content-max-width);
+      margin: 0 auto;
+    }
+    .footer-right {
+      display: inline-flex;
+      gap: 14px;
+    }
+    .footer-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #9ca3af;
+    }
+    .footer-link svg {
+      width: 12px;
+      height: 12px;
+      color: #d1d5db;
+    }
+
+    /* ========= 响应式 ========= */
+    @media (max-width: 900px) {
+      .nav {
+        padding-inline: 16px;
+      }
+      .nav-links {
+        display: none;
+      }
+      .hero {
+        grid-template-columns: minmax(0, 1fr);
+        padding-top: 30px;
+        gap: 28px;
+      }
+      .hero-panel {
+        order: -1;
+      }
+      .experience-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .projects-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .contact-inner {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    @media (max-width: 640px) {
+      :root {
+        --space-section-y: var(--space-section-y-mobile);
+      }
+      .shell {
+        padding-inline: 16px;
+        padding-bottom: 48px;
+      }
+      .nav {
+        margin-top: 10px;
+        padding-inline: 14px;
+      }
+      .hero-main-heading {
+        font-size: 28px;
+      }
+      .hero-summary {
+        grid-auto-flow: row;
+        max-width: none;
+      }
+      .projects-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .contact {
+        padding-inline: 16px;
+      }
+      .contact-inner {
+        padding-inline: 0;
+      }
+      .contact-form-footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .footer {
+        flex-direction: column;
+        align-items: flex-start;
+        padding-inline: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- 顶部导航 -->
+    <header class="nav">
+      <div class="nav-left">
+        <div class="nav-logo-mark">
+          <span class="nav-logo-initials">YN</span> <!-- 你的姓名首字母 -->
+        </div>
+        <span class="nav-name">Your Name</span> <!-- 你的名字 -->
+      </div>
+      <nav class="nav-links">
+        <a href="#about" class="nav-link">About</a>
+        <a href="#experience" class="nav-link">Experience</a>
+        <a href="#work" class="nav-link">Selected Work</a>
+        <a href="#contact" class="nav-link">Contact</a>
+      </nav>
+      <a href="#contact" class="nav-cta">
+        <span>Schedule a call</span>
+        <span class="nav-cta-icon">
+          <!-- 电话图标 -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M5.5 4.75 8 4l2 3-1.5 1.5a10.5 10.5 0 0 0 4 4L14 11l3 2 .75 2.5a1.5 1.5 0 0 1-.86 1.78C15.69 18.84 14.6 19 12 19s-3.69-.16-4.89-.72a1.5 1.5 0 0 1-.86-1.78L7 14l-2-4.5 0-1.5Z"/>
+          </svg>
+        </span>
+      </a>
+    </header>
+
+    <!-- 主内容 -->
+    <main class="shell">
+      <!-- Hero 区 -->
+      <section id="about" class="hero">
+        <div>
+          <div class="hero-meta">
+            <span class="hero-meta-pill">
+              <span class="hero-meta-icon">
+                <!-- 菜单 / 布局图标 -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="4" y="4" width="7" height="7" rx="1.5"/>
+                  <rect x="13" y="4" width="7" height="7" rx="1.5"/>
+                  <rect x="4" y="13" width="7" height="7" rx="1.5"/>
+                  <rect x="13" y="13" width="7" height="7" rx="1.5"/>
+                </svg>
+              </span>
+              Portfolio · 2025 Edition
+            </span>
+            <span class="hero-meta-pill">
+              <span class="hero-meta-icon">
+                <!-- 位置图标 -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M12 21s6-6.17 6-11a6 6 0 1 0-12 0c0 4.83 6 11 6 11Z"/>
+                  <circle cx="12" cy="10" r="2.5"/>
+                </svg>
+              </span>
+              Based in Zurich · Global remote
+            </span>
+          </div>
+
+          <h1 class="hero-main-heading">
+            I design quiet, confident digital products for ambitious teams.
+          </h1>
+
+          <p class="hero-subheading">
+            I help companies translate complex problems into interfaces that feel obvious, calm, and premium — the kind of work that ages well and earns trust.
+          </p>
+
+          <div class="hero-actions">
+            <a href="#work" class="btn-primary">
+              <span>View selected work</span>
+              <span class="btn-icon">
+                <!-- 右箭头 -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M6 12h12M13 7l5 5-5 5"/>
+                </svg>
+              </span>
+            </a>
+            <a href="#contact" class="btn-secondary">
+              <span>Request availability</span>
+              <span class="btn-icon">
+                <!-- 日历图标 -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="4" y="5" width="16" height="15" rx="2"/>
+                  <path d="M9 3v4M15 3v4M4 10h16"/>
+                </svg>
+              </span>
+            </a>
+          </div>
+
+          <div class="hero-summary">
+            <div class="hero-summary-item">
+              <div class="hero-summary-label">Focus</div>
+              <div class="hero-summary-value">Product design, UX strategy, design systems.</div>
+            </div>
+            <div class="hero-summary-item">
+              <div class="hero-summary-label">Currently</div>
+              <div class="hero-summary-value">Partnering with B2B SaaS and fintech teams from seed to Series C.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 精致信息卡片 -->
+        <aside class="hero-panel" aria-label="Profile snapshot">
+          <div class="hero-panel-inner">
+            <div class="hero-panel-header">
+              <div class="hero-panel-title">Studio Overview</div>
+              <div class="hero-panel-status">
+                <span class="hero-panel-dot"></span>
+                <span class="hero-panel-status-text">Accepting 1–2 new clients</span>
+              </div>
+            </div>
+
+            <div class="hero-panel-profile">
+              <div class="hero-avatar">
+                <div class="hero-avatar-inner">YN</div>
+              </div>
+              <div class="hero-panel-profile-text">
+                <div class="hero-panel-name">Your Name</div>
+                <div class="hero-panel-role">Product Designer & Design Partner</div>
+                <div class="hero-panel-tags">
+                  <span class="hero-panel-tag">12+ years in product</span>
+                  <span class="hero-panel-tag">Ex–in‑house lead</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="hero-panel-metrics">
+              <div class="hero-panel-metric">
+                <div class="hero-panel-metric-label">Clients</div>
+                <div class="hero-panel-metric-value">20+ VC-backed teams</div>
+              </div>
+              <div class="hero-panel-metric">
+                <div class="hero-panel-metric-label">Engagements</div>
+                <div class="hero-panel-metric-value">3–12 month retainers</div>
+              </div>
+              <div class="hero-panel-metric">
+                <div class="hero-panel-metric-label">Timezone</div>
+                <div class="hero-panel-metric-value">CET · Remote</div>
+              </div>
+            </div>
+
+            <div class="hero-panel-footer">
+              <div class="hero-panel-note">
+                Thoughtful, low‑ego collaboration with founders, PMs, and engineers.
+              </div>
+              <a href="#contact" class="hero-panel-link">
+                Let’s explore fit
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M8 16 16 8M9 8h7v7"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <!-- Experience 区 -->
+      <section id="experience" class="section">
+        <div class="section-header">
+          <div class="section-title-group">
+            <div class="section-kicker">Experience</div>
+            <h2 class="section-title">A track record of shipping calm, durable products.</h2>
+          </div>
+          <p class="section-description">
+            I’ve worked both in‑house and as an external partner, leading design from zero‑to‑one through scale for teams that value rigor over theatrics.
+          </p>
+        </div>
+
+        <div class="experience-grid">
+          <div class="experience-list">
+            <!-- 经历 1 -->
+            <article class="experience-card">
+              <div class="experience-main">
+                <div class="experience-role">Lead Product Designer</div>
+                <div class="experience-company">Northline Systems · B2B SaaS</div>
+                <div class="experience-meta">2021 — Present · Remote / Europe</div>
+                <ul class="experience-points">
+                  <li>Led product design for a suite of tools serving 2,000+ enterprise users in regulated industries.</li>
+                  <li>Introduced a design system that cut interface inconsistencies by 60% and sped up shipping by 40%.</li>
+                </ul>
+              </div>
+              <div class="experience-badge-col">
+                <div class="experience-badge">
+                  <span class="experience-badge-icon">
+                    <!-- 图表图标 -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M5 12.5 9.5 8 13 11l5-5.5"/>
+                      <path d="M4 19h16"/>
+                    </svg>
+                  </span>
+                  Series B · 75+ people
+                </div>
+                <span>Product, system, research</span>
+              </div>
+            </article>
+
+            <!-- 经历 2 -->
+            <article class="experience-card">
+              <div class="experience-main">
+                <div class="experience-role">Senior Product Designer</div>
+                <div class="experience-company">Helvetic Finance · Fintech</div>
+                <div class="experience-meta">2018 — 2021 · Zurich</div>
+                <ul class="experience-points">
+                  <li>Redesigned the flagship investment dashboard, improving key task completion by 30% in user testing.</li>
+                  <li>Collaborated tightly with compliance and engineering to ship features to multiple EU markets.</li>
+                </ul>
+              </div>
+              <div class="experience-badge-col">
+                <div class="experience-badge">
+                  <span class="experience-badge-icon">
+                    <!-- 信用卡图标 -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <rect x="3" y="5" width="18" height="14" rx="2"/>
+                      <path d="M3 10h18"/>
+                    </svg>
+                  </span>
+                  Fintech · Regulated
+                </div>
+                <span>UX, data‑dense UI</span>
+              </div>
+            </article>
+
+            <!-- 经历 3 -->
+            <article class="experience-card">
+              <div class="experience-main">
+                <div class="experience-role">Independent Design Partner</div>
+                <div class="experience-company">Select founders & product teams</div>
+                <div class="experience-meta">2015 — Today · Global remote</div>
+                <ul class="experience-points">
+                  <li>Embedded with early‑stage teams as a fractional design lead to shape product, brand, and process.</li>
+                  <li>Helped founders move from pitch decks to shipped product in 12–16 weeks.</li>
+                </ul>
+              </div>
+              <div class="experience-badge-col">
+                <div class="experience-badge">
+                  <span class="experience-badge-icon">
+                    <!-- 三星图标 -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="m12 4 1.9 4 4.4.4-3.3 3 1 4.2L12 14.5 8 15.6l1-4.2-3.3-3 4.4-.4L12 4Z"/>
+                    </svg>
+                  </span>
+                  Fractional · Advisory
+                </div>
+                <span>Founders, early teams</span>
+              </div>
+            </article>
+          </div>
+
+          <aside class="experience-aside">
+            <div class="experience-aside-title">How I work</div>
+            <div class="experience-aside-body">
+              I prefer a calm, clear way of working: tight feedback loops, real constraints, and a shared definition of what “good” looks like.
+              <div class="experience-chips">
+                <span class="chip">Weekly strategy check‑ins</span>
+                <span class="chip">Async‑first, low‑latency comms</span>
+                <span class="chip">Figma, FigJam, Notion</span>
+                <span class="chip">Direct collaboration with founders & PMs</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- Projects 区 -->
+      <section id="work" class="section">
+        <div class="section-header">
+          <div class="section-title-group">
+            <div class="section-kicker">Selected Work</div>
+            <h2 class="section-title">Quietly opinionated work for complex products.</h2>
+          </div>
+          <p class="section-description">
+            A brief sample of recent engagements. Full case studies are available on request for teams with aligned needs.
+          </p>
+        </div>
+
+        <div class="projects-grid">
+          <!-- 项目 1 -->
+          <article class="project-card">
+            <div class="project-tag-row">
+              <span class="project-tag">SaaS · Workflow</span>
+              <span class="project-icon-badge">
+                <!-- 窗口图标 -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="4" y="4" width="16" height="16" rx="3"/>
+                  <path d="M9 4v16"/>
+                </svg>
+              </span>
+            </div>
+            <h3 class="project-title">Operator console for a complex B2B platform</h3>
+            <p class="project-description">
+              Designed a unified console that replaced four legacy tools, simplifying workflows for operations teams without losing depth or control.
+            </p>
+            <div class="project-footer">
+              <div class="project-tech">
+                <span>Design systems</span>·
+                <span>Dense UI</span>
+              </div>
+              <a href="#contact" class="project-link">
+                Case study
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M8 16 16 8M9 8h7v7"/>
+                </svg>
+              </a>
+            </div>
+          </article>
+
+          <!-- 项目 2 -->
+          <article class="project-card">
+            <div class="project-tag-row">
+              <span class="project-tag">Fintech · Analytics</span>
+              <span class="project-icon-badge">
+                <!-- 折线图标 -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M4 18 10 9l4 3 6-7"/>
+                  <path d="M4 5v14h16"/>
+                </svg>
+              </span>
+            </div>
+            <h3 class="project-title">A calm dashboard for anxious investors</h3>
+            <p class="project-description">
+              Reframed a volatile data experience into a composed, legible dashboard that reduced support tickets and increased weekly active users.
+            </p>
+            <div class="project-footer">
+              <div class="project-tech">
+                <span>UX research</span>·
+                <span>Information design</span>
+              </div>
+              <a href="#contact" class="project-link">
+                Walkthrough
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M8 16 16 8M9 8h7v7"/>
+                </svg>
+              </a>
+            </div>
+          </article>
+
+          <!-- 项目 3 -->
+          <article class="project-card">
+            <div class="project-tag-row">
+              <span class="project-tag">0→1 · Product</span>
+              <span class="project-icon-badge">
+                <!-- 火花图标 -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M12 3v6l3-3m-3 3-3-3"/>
+                  <path d="M8 11c-1.5 1.5-2 3-2 4.5A6 6 0 0 0 16 19c1.5-1.5 2-3 2-4.5A6 6 0 0 0 8 11Z"/>
+                </svg>
+              </span>
+            </div>
+            <h3 class="project-title">Helping a founder ship their first version</h3>
+            <p class="project-description">
+              Partnered with a solo founder from idea to launch, aligning product scope, narrative, and interface in under 14 weeks.
+            </p>
+            <div class="project-footer">
+              <div class="project-tech">
+                <span>Vision & scope</span>·
+                <span>Product design</span>
+              </div>
+              <a href="#contact" class="project-link">
+                Engagement model
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M8 16 16 8M9 8h7v7"/>
+                </svg>
+              </a>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- 联系区 -->
+      <section id="contact" class="contact" aria-label="Contact">
+        <div class="contact-inner">
+          <div>
+            <h2 class="contact-heading">If you value clarity over noise, we might work well together.</h2>
+            <p class="contact-text">
+              I typically work on 3–12 month retainers with founders and product teams who care about the details.
+              Tell me briefly about your product, your timeline, and what “success” would look like.
+            </p>
+            <div class="contact-highlights">
+              <div class="contact-highlight">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M5 12.5 9.5 17 19 7"/>
+                </svg>
+                Strategy + execution
+              </div>
+              <div class="contact-highlight">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="7"/>
+                  <path d="M12 9v4l2 2"/>
+                </svg>
+                1–2 week onboarding
+              </div>
+              <div class="contact-highlight">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M5 7h14M5 12h10M5 17h7"/>
+                </svg>
+                Async‑first, low‑meeting
+              </div>
+            </div>
+            <div class="contact-methods">
+              <div class="contact-method">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M4 6.5 10.8 12 17.5 6.5"/>
+                  <rect x="3" y="5" width="18" height="14" rx="2"/>
+                </svg>
+                you@yourdomain.com
+              </div>
+              <div class="contact-method">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 7v5l3 3"/>
+                </svg>
+                CET · Mon–Thu
+              </div>
+            </div>
+          </div>
+
+          <form class="contact-form-card">
+            <div class="contact-form-header">
+              <div class="contact-form-title">Project Inquiry</div>
+              <div class="contact-form-status">Typical response within 1–2 business days</div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="name">Name</label>
+                <input class="field-input" id="name" type="text" placeholder="Who should I reply to?" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="email">Work email</label>
+                <input class="field-input" id="email" type="email" placeholder="you@company.com" />
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="company">Company</label>
+                <input class="field-input" id="company" type="text" placeholder="Optional, but helpful." />
+              </div>
+              <div class="field">
+                <label class="field-label" for="timeline">Rough timeline</label>
+                <input class="field-input" id="timeline" type="text" placeholder="e.g., start in March · 3–6 months" />
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="message">What are you building?</label>
+              <textarea class="field-textarea" id="message" placeholder="A few sentences about your product, your team, and where design can help."></textarea>
+            </div>
+            <div class="contact-form-footer">
+              <div class="contact-form-hint">
+                No mailing lists. No pressure. Just a thoughtful reply and a clear next step if there’s a fit.
+              </div>
+              <button type="submit" class="contact-submit">
+                <span>Send inquiry</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="m5 12 14-7-3.5 14-4-5-5-2Z"/>
+                </svg>
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <!-- 底部 -->
+    <footer class="footer">
+      <div>© 2025 · Your Name. Designed with intent, built with restraint.</div>
+      <div class="footer-right">
+        <a href="#" class="footer-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M9 9h6v6H9z"/>
+          </svg>
+          LinkedIn
+        </a>
+        <a href="#" class="footer-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M9.5 21v-7.2L5 5h3.5l2.4 4.9L13.3 5H17l-4.5 8.8V21"/>
+          </svg>
+          Dribbble
+        </a>
+        <a href="#" class="footer-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M6 19V5h6a5 5 0 1 1 0 10H6"/>
+          </svg>
+          CV
+        </a>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

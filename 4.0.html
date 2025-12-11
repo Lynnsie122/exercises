@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的 Notion 风格主页</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #37352f;
+            --gray-text: #787774;
+            --hover-bg: #efefef;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+        }
+
+        body {
+            font-family: var(--font-family);
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+        }
+
+        /* 布局容器 */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 96px; /* Notion 经典的左右宽留白 */
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 24px;
+            }
+        }
+
+        /* 封面图占位 */
+        .cover-image {
+            height: 30vh;
+            background-color: #FDECC8; /* 默认米色背景，类似Notion */
+            background-image: url('https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');
+            background-size: cover;
+            background-position: center;
+            width: 100%;
+        }
+
+        /* 图标与标题区域 */
+        .header-content {
+            margin-top: -42px; /* 让图标上浮压住封面图 */
+            margin-bottom: 32px;
+        }
+
+        .icon {
+            font-size: 78px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 40px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.01em;
+        }
+
+        /* 顶部导航 (面包屑风格) */
+        .navbar {
+            padding: 12px 20px;
+            font-size: 14px;
+            color: var(--text-color);
+            position: sticky;
+            top: 0;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+        }
+
+        /* 基础排版 */
+        p {
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        /* Callout 提示框风格 */
+        .callout {
+            background-color: #F1F1EF;
+            padding: 16px 16px 16px 12px;
+            border-radius: 4px;
+            display: flex;
+            align-items: flex-start;
+            margin: 16px 0;
+        }
+        .callout-icon {
+            margin-right: 12px;
+            font-size: 24px;
+        }
+
+        /* Quote 引用风格 */
+        blockquote {
+            border-left: 3px solid var(--text-color);
+            margin: 16px 0;
+            padding-left: 14px;
+            font-size: 18px;
+        }
+
+        /* 列表链接风格 (Gallery View 模拟) */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .card {
+            border: 1px solid rgba(55, 53, 47, 0.16);
+            border-radius: 4px;
+            overflow: hidden;
+            transition: background 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .card:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .card-img {
+            height: 120px;
+            background-color: #e3e2e0;
+            background-size: cover;
+        }
+        
+        .card-content {
+            padding: 10px 14px;
+        }
+        
+        .card-title {
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* 分割线 */
+        hr {
+            border: none;
+            border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+            margin: 24px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 顶部导航 -->
+    <nav class="navbar">
+        Notion 风格主页 / 个人简介
+    </nav>
+
+    <!-- 封面图 -->
+    <div class="cover-image"></div>
+
+    <div class="container">
+        <!-- 头部信息 -->
+        <div class="header-content">
+            <div class="icon">💻</div>
+            <h1>你好，我是 Gemini</h1>
+        </div>
+
+        <!-- Callout 提示块 -->
+        <div class="callout">
+            <div class="callout-icon">💡</div>
+            <div>
+                <strong>关于本站：</strong><br>
+                这是一个模仿 Notion UI 风格生成的纯 HTML/CSS 网页演示。它非常简洁、加载速度快。
+            </div>
+        </div>
+
+        <p>我是一名全栈开发者，喜欢折腾各种有趣的技术。这是我的数字花园，我会在这里分享我的项目和思考。</p>
+        
+        <p>Notion 的设计哲学在于<strong>极简</strong>与<strong>内容优先</strong>。我们不需要复杂的动画，只需要清晰的层级。</p>
+
+        <hr>
+
+        <h2>📚 我的项目 (Gallery View)</h2>
+        
+        <div class="gallery-grid">
+            <!-- 卡片 1 -->
+            <a href="#" class="card">
+                <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60');"></div>
+                <div class="card-content">
+                    <div class="card-title">📝 个人博客系统</div>
+                </div>
+            </a>
+            
+            <!-- 卡片 2 -->
+            <a href="#" class="card">
+                <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60');"></div>
+                <div class="card-content">
+                    <div class="card-title">📊 数据可视化大屏</div>
+                </div>
+            </a>
+
+            <!-- 卡片 3 -->
+            <a href="#" class="card">
+                <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1611162617474-5b21e879e113?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60');"></div>
+                <div class="card-content">
+                    <div class="card-title">🎨 UI 设计作品集</div>
+                </div>
+            </a>
+        </div>
+
+        <hr>
+
+        <h2>💬 常用语录</h2>
+        <blockquote>
+            “Less is more.” —— Mies van der Rohe
+        </blockquote>
+
+        <br><br><br>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,1134 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>刷题记录本 - 算法</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{
+      --primary:#1abc9c;
+      --primary-dark:#16a085;
+      --accent:#3498db;
+      --danger:#e74c3c;
+      --bg:#f5f7fb;
+      --card-bg:#ffffff;
+      --text-main:#23303a;
+      --text-sub:#60707a;
+      --border:#e6eef2;
+      --radius:12px;
+      --shadow:0 12px 30px rgba(15,35,52,0.06);
+      --base-font:18px; /* 放大整体字体 */
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      font-family:Inter,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",Arial,sans-serif;
+      background:linear-gradient(180deg,#f7fbfc 0%,#ffffff 100%);
+      color:var(--text-main);
+      font-size:var(--base-font);
+      line-height:1.6;
+      padding-bottom:40px;
+    }
+    header{
+      position:sticky;top:0;z-index:50;
+      background:rgba(255,255,255,0.96);
+      backdrop-filter:blur(8px);
+      border-bottom:1px solid rgba(230,238,242,0.9);
+    }
+    .nav{
+      max-width:1200px;margin:0 auto;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:14px 18px;
+    }
+    .brand{display:flex;align-items:center;gap:12px;}
+    .brand-logo{
+      width:44px;height:44px;border-radius:12px;
+      background:linear-gradient(135deg,var(--primary),var(--accent));
+      display:flex;align-items:center;justify-content:center;
+      color:#fff;font-size:20px;font-weight:800;
+      box-shadow:0 8px 18px rgba(26,188,156,0.35);
+    }
+    .brand-text-title{font-weight:900;font-size:20px;}
+    .brand-text-sub{font-size:13px;color:var(--text-sub);}
+    .nav-links{display:flex;gap:10px;align-items:center;}
+    .nav-btn{
+      border:none;background:transparent;
+      padding:9px 16px;border-radius:999px;
+      color:var(--text-sub);cursor:pointer;font-weight:700;
+      font-size:15px;
+    }
+    .nav-btn.active{
+      background:#fff;color:var(--primary-dark);
+      box-shadow:0 6px 18px rgba(22,160,133,0.16);
+      border:1px solid rgba(26,188,156,0.15);
+    }
+    .nav-tools{display:flex;gap:8px;align-items:center;}
+    .pill-badge{
+      background:rgba(26,188,156,0.05);
+      color:var(--primary-dark);
+      border-radius:999px;
+      padding:6px 12px;
+      font-size:12px;
+      border:1px solid rgba(26,188,156,0.12);
+    }
+    main{max-width:1200px;margin:22px auto;padding:0 18px;}
+
+    .card{
+      background:var(--card-bg);
+      border-radius:16px;
+      padding:16px;
+      box-shadow:var(--shadow);
+      border:1px solid rgba(255,255,255,0.9);
+    }
+    .section{display:none;}
+    .section.active{display:block;}
+
+    .section-header{
+      display:flex;justify-content:space-between;align-items:flex-start;
+      gap:10px;margin-bottom:14px;flex-wrap:wrap;
+    }
+    .section-title{font-size:22px;font-weight:900;}
+    .section-sub{font-size:14px;color:var(--text-sub);}
+
+    .btn-primary{
+      border:none;border-radius:999px;
+      padding:9px 16px;
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:#fff;font-size:15px;cursor:pointer;font-weight:700;
+      display:inline-flex;align-items:center;gap:8px;
+      box-shadow:0 8px 20px rgba(26,188,156,0.4);
+    }
+    .btn-outline{
+      border-radius:999px;
+      padding:8px 14px;
+      background:transparent;
+      border:1px dashed var(--border);
+      color:var(--text-sub);font-size:14px;
+      cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+    }
+    .btn-danger{
+      background:rgba(231,76,60,0.12);
+      color:#c0392b;
+      border-radius:999px;
+      padding:8px 12px;
+      border:none;font-size:14px;
+      cursor:pointer;
+    }
+
+    .home-grid{
+      display:grid;grid-template-columns:2.2fr 1.3fr;
+      gap:18px;
+    }
+
+    /* 通用表单 */
+    .problem-toolbar{
+      display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px;
+      align-items:center;
+    }
+    .input, textarea, select{
+      border-radius:999px;
+      border:1px solid var(--border);
+      padding:9px 12px;
+      font-size:15px;
+      outline:none;
+      background:#f8fafc;
+    }
+    textarea{border-radius:10px;resize:vertical;min-height:80px;}
+    .input:focus, textarea:focus, select:focus{
+      border-color:var(--primary);
+      box-shadow:0 0 0 1px rgba(26,188,156,0.12);
+      background:#fff;
+    }
+
+    .problem-table{
+      width:100%;border-collapse:collapse;
+      font-size:15px;margin-top:8px;
+    }
+    .problem-table th,
+    .problem-table td{
+      padding:10px 8px;
+      border-bottom:1px dashed #edf1f5;
+      text-align:left;
+      vertical-align:middle;
+    }
+    .problem-table th{
+      font-size:12px;
+      letter-spacing:0.04em;
+      text-transform:uppercase;
+      color:var(--text-sub);
+    }
+    .problem-row{cursor:pointer;}
+    .problem-row:hover{background:#f8fbfc;}
+    .tag{display:inline-block;padding:4px 9px;border-radius:999px;background:#ecf5ff;color:#2469d9;font-size:13px;margin-right:6px;}
+    .difficulty-easy{color:#27ae60;font-weight:700;font-size:14px;}
+    .difficulty-medium{color:#f39c12;font-weight:700;font-size:14px;}
+    .difficulty-hard{color:#e74c3c;font-weight:700;font-size:14px;}
+
+    /* 详情页（内嵌） */
+    #detailSection{display:none;}
+    #detailSection.active{display:block;}
+    .detail-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;}
+    .detail-title-big{font-size:20px;font-weight:900;}
+    .detail-meta-row{display:flex;gap:8px;align-items:center;color:var(--text-sub);font-size:14px;}
+    .detail-panel{border-radius:12px;padding:12px;background:linear-gradient(180deg,#ffffff 0,#f7fbfc 100%);box-shadow:var(--shadow);border:1px solid rgba(255,255,255,0.9);}
+    .detail-body{display:grid;grid-template-columns:1.2fr 1fr;gap:0;margin-top:12px;}
+    .detail-col{padding:14px;overflow:auto;}
+    .detail-col-left{border-right:1px solid rgba(226,232,240,0.9);background:radial-gradient(circle at top,#ffffff 0,#f3f6fb 80%);}
+    .detail-col-right{background:#ffffff;color:#0f172a;border-radius:10px;} /* 代码区容器白色 */
+    .detail-section{margin-bottom:12px;padding:10px;border-radius:10px;background:rgba(255,255,255,0.95);border:1px solid rgba(226,232,240,0.9);}
+    .detail-section-title{font-size:15px;font-weight:800;margin-bottom:8px;color:#4b5563;display:flex;align-items:center;justify-content:space-between;}
+    .pill-small{padding:6px 10px;border-radius:999px;background:rgba(15,23,42,0.04);font-size:13px;color:#6b7280;}
+    .code-area-wrap{border-radius:10px;background:#ffffff;border:1px solid rgba(226,232,240,0.9);overflow:hidden;box-shadow:0 6px 18px rgba(15,23,42,0.04);} /* 白底 */
+    .code-toolbar{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#fbfdff;font-size:13px;color:#6b7280;border-bottom:1px solid rgba(240,245,250,0.9);}
+    .code-textarea{width:100%;min-height:320px;background:#ffffff;border:none;color:#0f172a;padding:12px;font-family:Menlo,Consolas,"Fira Code",monospace;font-size:14px;line-height:1.5;white-space:pre;resize:vertical;outline:none;} /* 白底深色文本 */
+
+    .detail-actions{display:flex;gap:8px;align-items:center;}
+    .btn-sm{border-radius:999px;border:1px solid rgba(148,163,184,0.7);background:transparent;color:#0f172a;padding:7px 12px;font-size:14px;cursor:pointer;}
+
+    .hint-box{margin-top:8px;font-size:13px;color:var(--text-sub);background:#f7fafc;border-radius:8px;border:1px dashed var(--border);padding:8px;}
+
+    /* 日历 */
+    .calendar-wrap{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;}
+    .calendar-card{width:420px;padding:12px;border-radius:12px;background:linear-gradient(180deg,#fff,#fbfeff);box-shadow:var(--shadow);}
+    .cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+    .cal-week{font-size:13px;color:var(--text-sub);text-align:center;padding:6px 4px;}
+    .cal-day{min-height:52px;border-radius:8px;padding:6px;background:#f8fbfc;text-align:left;font-size:14px;position:relative;cursor:pointer;}
+    .cal-day.today{border:1px solid rgba(26,188,156,0.12);}
+    .cal-day .date-num{font-weight:700;}
+    .dot{width:8px;height:8px;border-radius:999px;background:var(--accent);display:inline-block;margin-right:4px;}
+    .cal-list{flex:1;min-width:300px;max-width:520px;padding:12px;border-radius:12px;background:linear-gradient(180deg,#fff,#fbfeff);box-shadow:var(--shadow);}
+
+    /* 笔记：左目录/右渲染（Typora 风格） */
+    .notes-wrap{display:flex;gap:12px;}
+    .notes-toc{width:260px;min-height:420px;border-radius:10px;padding:12px;background:#ffffff;border:1px solid var(--border);overflow:auto;}
+    .toc-item{padding:6px 8px;border-radius:8px;color:var(--text-sub);cursor:pointer;}
+    .toc-item:hover{background:#f2f7f8;color:var(--text-main);}
+    .toc-h1{font-weight:800;margin-left:0}
+    .toc-h2{margin-left:8px}
+    .toc-h3{margin-left:16px}
+    .notes-editor{flex:1;min-height:420px;border-radius:10px;padding:12px;background:#ffffff;border:1px solid var(--border);overflow:auto;display:flex;flex-direction:column;}
+    .notes-editor .toolbar{display:flex;gap:8px;margin-bottom:8px;}
+    .notes-edit-area{flex:1;display:flex;gap:12px;min-height:340px;}
+    .notes-input{width:48%;border-radius:8px;border:1px solid var(--border);padding:10px;resize:vertical;font-size:15px;line-height:1.6;background:#f8fafc;outline:none;}
+    .notes-render{width:52%;border-radius:8px;border:1px solid var(--border);padding:14px;background:#fff;overflow:auto;}
+    .notes-render h1{font-size:22px;margin:8px 0;font-weight:800}
+    .notes-render h2{font-size:18px;margin:6px 0;font-weight:800}
+    .notes-render h3{font-size:16px;margin:6px 0;font-weight:700}
+    .notes-render p{margin:8px 0;color:var(--text-main)}
+    pre.code-block{background:#0b1220;color:#e5e7eb;padding:12px;border-radius:8px;overflow:auto}
+
+    /* 资源卡片 */
+    .resources-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+    .res-card{background:linear-gradient(180deg,#fff,#f8fdff);padding:12px;border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px;}
+    .res-card .res-title{font-weight:800;font-size:16px;color:var(--text-main)}
+    .res-card .res-desc{font-size:14px;color:var(--text-sub);min-height:36px}
+    .res-card .res-actions{display:flex;gap:8px;margin-top:auto;justify-content:flex-end}
+
+    @media (max-width:1000px){
+      .home-grid{grid-template-columns:1fr;}
+      .detail-body{grid-template-columns:1fr;}
+      .calendar-wrap{flex-direction:column}
+      .notes-toc{display:none} /* 手机屏幕省略左侧目录 */
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <div class="brand">
+      <div class="brand-logo">A</div>
+      <div>
+        <div class="brand-text-title">算法刷题记录本</div>
+        <div class="brand-text-sub">轻量 · 本地保存 · 支持复盘与代码记录</div>
+      </div>
+    </div>
+    <div class="nav-links">
+      <button class="nav-btn active" data-section="home">题目</button>
+      <button class="nav-btn" data-section="calendar">日历</button>
+      <button class="nav-btn" data-section="notes">笔记</button>
+      <button class="nav-btn" data-section="resources">资源</button>
+    </div>
+    <div class="nav-tools">
+      <span class="pill-badge">本地存储：localStorage · 建议定期导出备份</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- 题目主页 -->
+  <section id="home" class="section active">
+    <div class="card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">题目列表 / 复盘</div>
+          <div class="section-sub">记录题目来源、核心思路、易错点和代码，方便回顾与查找。</div>
+        </div>
+        <div>
+          <button id="btnAddProblem" class="btn-primary">＋ 新建题目</button>
+        </div>
+      </div>
+
+      <div class="problem-toolbar">
+        <input id="searchInput" class="input" placeholder="搜索：标题 / 来源 / 标签" />
+        <select id="filterDifficulty">
+          <option value="">难度：全部</option>
+          <option value="简单">简单</option>
+          <option value="中等">中等</option>
+          <option value="困难">困难</option>
+        </select>
+
+        <!-- 新增：标签筛选 -->
+        <select id="filterTag">
+          <option value="">标签：全部</option>
+          <!-- 动态插入已有标签选项 -->
+        </select>
+
+        <button id="btnExport" class="btn-outline">导出数据</button>
+        <label class="btn-outline" style="cursor:pointer;">
+          导入数据
+          <input id="importFileInput" type="file" accept="application/json" style="display:none;" />
+        </label>
+      </div>
+
+      <table class="problem-table">
+        <thead>
+          <tr>
+            <th style="width:32%;">题目</th>
+            <th style="width:14%;">来源</th>
+            <th style="width:10%;">难度</th>
+            <th style="width:24%;">标签</th>
+            <th style="width:10%;">状态</th>
+            <th style="width:10%;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="problemTbody"></tbody>
+      </table>
+      <div class="hint-box">
+        · 数据会自动保存在当前浏览器的 localStorage 中。清空浏览器数据或更换浏览器后，数据会丢失。<br>
+        · 建议不定期点击 “导出数据” 备份为本地 JSON 文件，换电脑或重装浏览器后可通过 “导入数据” 恢复。
+      </div>
+    </div>
+  </section>
+
+  <!-- 题目详情页（内嵌） -->
+  <section id="detailSection" class="section">
+    <div class="detail-top">
+      <div>
+        <div class="detail-title-big" id="detailPageTitle">题目详情</div>
+        <div class="detail-meta-row" style="margin-top:6px;">
+          <div id="detailPageMetaSource" class="pill-small">来源</div>
+          <div id="detailPageMetaDifficulty" class="pill-small">难度</div>
+          <div id="detailPageMetaTags" class="pill-small">标签</div>
+          <div id="detailPageMetaStatus" class="pill-small">状态</div>
+        </div>
+      </div>
+      <div class="detail-actions">
+        <button id="btnBackToList" class="btn-sm">← 返回列表</button>
+        <button id="btnDeleteProblemPage" class="btn-danger">删除</button>
+      </div>
+    </div>
+
+    <div class="detail-panel">
+      <div class="detail-body">
+        <div class="detail-col detail-col-left">
+          <div class="detail-section">
+            <div class="detail-section-title">基本信息</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <label>标题：
+                <input id="detailInputTitle" class="input" style="width:100%;margin-top:6px;border-radius:8px;" />
+              </label>
+              <label>来源：
+                <input id="detailInputSource" class="input" style="width:100%;margin-top:6px;border-radius:8px;" placeholder="如 LeetCode / 力扣 / Codeforces ..." />
+              </label>
+              <div style="display:flex;gap:8px;">
+                <label style="flex:1">难度：
+                  <select id="detailInputDifficulty" style="width:100%;margin-top:6px;">
+                    <option value="">未设置</option>
+                    <option value="简单">简单</option>
+                    <option value="中等">中等</option>
+                    <option value="困难">困难</option>
+                  </select>
+                </label>
+                <label style="flex:1">状态：
+                  <select id="detailInputStatus" style="width:100%;margin-top:6px;">
+                    <option value="未做">未做</option>
+                    <option value="已掌握">已掌握</option>
+                    <option value="需复习">需复习</option>
+                  </select>
+                </label>
+              </div>
+
+              <!-- 标签支持 datalist 建议（可从已有标签选择） -->
+              <label>标签（逗号分隔，可从下拉选择）：
+                <input id="detailInputTags" class="input" list="tagsDatalist" style="width:100%;margin-top:6px;border-radius:8px;" placeholder="如：二分, 动态规划, 图" />
+                <datalist id="tagsDatalist"></datalist>
+              </label>
+
+              <!-- 关联日期显示为 yyyy/mm/dd（界面），内部仍保存 yyyy-mm-dd ISO -->
+              <label>关联日期（yyyy/mm/dd，非必填）：
+                <input id="detailInputDate" type="text" class="input" style="width:100%;margin-top:6px;border-radius:8px;" placeholder="2025/12/04" />
+              </label>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <div class="detail-section-title">核心思路</div>
+            <textarea id="detailInputIdea" placeholder="简要写一下题目的解题思路、关键转化、时间/空间复杂度等..." style="width:100%;min-height:120px;border-radius:8px;padding:10px;"></textarea>
+          </div>
+
+          <div class="detail-section">
+            <div class="detail-section-title">易错点 / 细节</div>
+            <textarea id="detailInputPitfalls" placeholder="记录容易犯错的边界情况、特殊样例、实现细节等..." style="width:100%;min-height:100px;border-radius:8px;padding:10px;"></textarea>
+          </div>
+        </div>
+
+        <div class="detail-col detail-col-right">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="color:#6b7280;font-size:14px;">代码记录（白底）</div>
+            <select id="detailInputLang" class="input" style="border-radius:999px;padding:6px 10px;background:#ffffff;color:#0f172a;border:1px solid rgba(226,232,240,0.9);width:auto;">
+              <option value="cpp">C++</option>
+              <option value="java">Java</option>
+              <option value="python">Python</option>
+              <option value="go">Go</option>
+              <option value="js">JavaScript</option>
+            </select>
+          </div>
+          <div class="code-area-wrap" style="padding:6px;">
+            <div class="code-toolbar">
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span style="width:10px;height:10px;border-radius:999px;background:#f87171;display:inline-block"></span>
+                <span style="width:10px;height:10px;border-radius:999px;background:#facc15;display:inline-block"></span>
+                <span style="width:10px;height:10px;border-radius:999px;background:#22c55e;display:inline-block"></span>
+                <span>在这里保存你对这道题的解法代码</span>
+              </div>
+              <div style="color:#6b7280;font-size:13px;" id="codeLangTag">C++</div>
+            </div>
+            <textarea id="detailInputCode" class="code-textarea" spellcheck="false" placeholder="// 在这里写你的代码"></textarea>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+            <div style="font-size:13px;color:#9ca3af;">所有修改会自动保存到本地 localStorage（无需手动保存）。</div>
+            <div style="display:flex;gap:8px;">
+              <button id="btnMarkReview" class="btn-sm">标记为需复习</button>
+              <button id="btnMarkMastered" class="btn-sm">标记为已掌握</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 日历 -->
+  <section id="calendar" class="section">
+    <div class="card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">刷题日历</div>
+          <div class="section-sub">按日期查看当天关联的题目（在题目详情填写“关联日期”以在日历中显示）。</div>
+        </div>
+      </div>
+
+      <div class="calendar-wrap">
+        <div class="calendar-card card" id="calendarCard">
+          <div class="cal-header">
+            <div style="font-weight:800" id="calMonthLabel">2025 年 12 月</div>
+            <div style="display:flex;gap:8px">
+              <button id="calPrev" class="btn-outline">上月</button>
+              <button id="calNext" class="btn-outline">下月</button>
+            </div>
+          </div>
+          <div class="cal-grid" id="calGridHeader">
+            <div class="cal-week">周日</div><div class="cal-week">周一</div><div class="cal-week">周二</div><div class="cal-week">周三</div><div class="cal-week">周四</div><div class="cal-week">周五</div><div class="cal-week">周六</div>
+          </div>
+          <div class="cal-grid" id="calGridDays"></div>
+        </div>
+
+        <div class="cal-list card" id="calList">
+          <div style="font-weight:800;margin-bottom:8px;" id="calListLabel">选中日期：无</div>
+          <div id="calItems">请选择左侧日历的某一天以查看关联题目。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 笔记 -->
+  <section id="notes" class="section">
+    <div class="card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">笔记 / 模板</div>
+          <div class="section-sub">左侧为章节目录（从 Markdown 标题解析），右侧实时渲染（简化 Markdown 支持）。</div>
+        </div>
+      </div>
+
+      <div class="notes-wrap">
+        <div class="notes-toc" id="notesToc">
+          <div style="font-weight:800;margin-bottom:8px">目录</div>
+          <div id="tocList" style="display:flex;flex-direction:column;gap:6px"></div>
+          <div style="margin-top:12px;font-size:13px;color:var(--text-sub)">点击目录可在编辑器中插入该标题或跳转渲染区（编辑器较长时）。</div>
+        </div>
+
+        <div class="notes-editor">
+          <div class="toolbar">
+            <button id="btnInsertH1" class="btn-outline">H1</button>
+            <button id="btnInsertH2" class="btn-outline">H2</button>
+            <button id="btnInsertH3" class="btn-outline">H3</button>
+            <button id="btnClearNotes" class="btn-outline">清空</button>
+            <div style="flex:1"></div>
+            <div style="font-size:13px;color:var(--text-sub)">自动保存到本地</div>
+          </div>
+
+          <div class="notes-edit-area">
+            <textarea id="notesInput" class="notes-input" placeholder="# 标题示例\n## 子标题\n在这里写你的笔记，支持简单的 Markdown 标题、代码块和换行。"></textarea>
+            <div class="notes-render" id="notesRender"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 资源 -->
+  <section id="resources" class="section">
+    <div class="card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">常用资源 / 链接</div>
+          <div class="section-sub">整理常用题单、博客、文档链接，卡片式展示并支持添加/删除。</div>
+        </div>
+        <div>
+          <button id="btnAddResource" class="btn-primary">＋ 添加资源</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center;">
+        <input id="resTitle" class="input" placeholder="资源标题" style="flex:1" />
+        <input id="resUrl" class="input" placeholder="链接（可选）" style="flex:1" />
+        <input id="resDesc" class="input" placeholder="描述（可选）" style="flex:2" />
+      </div>
+
+      <div class="resources-grid" id="resourcesGrid"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+  /*********** 存储 Key & 加载数据 ***********/
+  const STORAGE_KEY = "algo_problems_v2";
+  const NOTES_KEY = "algo_notes_v2";
+  const RES_KEY = "algo_resources_v2";
+
+  let problems = [];
+  let resources = [];
+
+  function loadData(){
+    try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw) problems = JSON.parse(raw); }catch(e){ problems = []; }
+    try{ const n = localStorage.getItem(NOTES_KEY); if(n) document.getElementById("notesInput").value = n; }catch(e){}
+    try{ const r = localStorage.getItem(RES_KEY); if(r) resources = JSON.parse(r); }catch(e){}
+  }
+  function saveProblems(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(problems)); renderProblemTable(); updateCalendar(); if(currentProblemId) updateDetailPageMetaFromCurrent(); updateTagFilters(); }
+  function saveNotes(){ localStorage.setItem(NOTES_KEY, document.getElementById("notesInput").value || ""); }
+  function saveResources(){ localStorage.setItem(RES_KEY, JSON.stringify(resources)); renderResources(); }
+
+  /*********** 帮助：标签集合 ***********/
+  function collectAllTags(){
+    const set = new Set();
+    for(const p of problems){
+      (p.tags||[]).forEach(t=>{ if(t) set.add(t); });
+    }
+    return Array.from(set).sort();
+  }
+
+  /*********** 渲染题目表格（与之前保持） ***********/
+  const tbody = document.getElementById("problemTbody");
+  const searchInput = document.getElementById("searchInput");
+  const filterDifficulty = document.getElementById("filterDifficulty");
+  const filterTag = document.getElementById("filterTag");
+
+  function difficultyClass(d){ if(d === "简单") return "difficulty-easy"; if(d === "中等") return "difficulty-medium"; if(d === "困难") return "difficulty-hard"; return ""; }
+
+  function renderProblemTable(){
+    const q = (searchInput.value || "").trim().toLowerCase();
+    const diff = filterDifficulty.value;
+    const tagFilter = filterTag.value;
+    tbody.innerHTML = "";
+    const list = problems.filter(p=>{
+      if(diff && p.difficulty !== diff) return false;
+      if(tagFilter){
+        if(!(p.tags && p.tags.includes(tagFilter))) return false;
+      }
+      if(!q) return true;
+      const text = [
+        p.title || "",
+        p.source || "",
+        (p.tags || []).join(",")
+      ].join(" ").toLowerCase();
+      return text.includes(q);
+    }).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+
+    if(!list.length){
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 6;
+      td.style.textAlign="center";
+      td.style.padding="22px 0";
+      td.style.fontSize="15px";
+      td.style.color="var(--text-sub)";
+      td.innerText = "暂无题目，点击右上角“新建题目”开始记录。";
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+
+    list.forEach(p=>{
+      const tr = document.createElement("tr");
+      tr.className = "problem-row";
+      tr.dataset.id = p.id;
+
+      const tdTitle = document.createElement("td");
+      tdTitle.innerHTML = '<strong>'+ (p.title || "(未命名题目)") +'</strong>';
+      const tdSource = document.createElement("td");
+      tdSource.textContent = p.source || "-";
+      const tdDiff = document.createElement("td");
+      tdDiff.innerHTML = '<span class="'+difficultyClass(p.difficulty)+'">'+(p.difficulty || "-")+'</span>';
+      const tdTags = document.createElement("td");
+      (p.tags || []).forEach(t=>{
+        if(!t) return;
+        const span = document.createElement("span");
+        span.className = "tag";
+        span.textContent = t;
+        tdTags.appendChild(span);
+      });
+      if(!(p.tags || []).length){ tdTags.textContent = "-"; }
+      const tdStatus = document.createElement("td");
+      tdStatus.style.fontSize="14px";
+      tdStatus.textContent = p.status || "未做";
+      const tdOps = document.createElement("td");
+      const btnEdit = document.createElement("button");
+      btnEdit.textContent = "打开";
+      btnEdit.className = "btn-outline";
+      btnEdit.style.fontSize = "13px";
+      btnEdit.addEventListener("click", (e)=>{
+        e.stopPropagation();
+        openDetailPage(p.id);
+      });
+      tdOps.appendChild(btnEdit);
+
+      tr.appendChild(tdTitle);
+      tr.appendChild(tdSource);
+      tr.appendChild(tdDiff);
+      tr.appendChild(tdTags);
+      tr.appendChild(tdStatus);
+      tr.appendChild(tdOps);
+
+      tr.addEventListener("click",()=>{
+        openDetailPage(p.id);
+      });
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  /*********** 新建题目 ***********/
+  document.getElementById("btnAddProblem").addEventListener("click", ()=>{
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+    const now = Date.now();
+    const p = {
+      id,
+      title:"新题目",
+      source:"LeetCode",
+      difficulty:"",
+      tags:[],
+      status:"未做",
+      idea:"",
+      pitfalls:"",
+      lang:"cpp",
+      code:"",
+      date:null, // 关联日期（ISO yyyy-mm-dd）
+      createdAt:now,
+      updatedAt:now
+    };
+    problems.push(p);
+    saveProblems();
+    openDetailPage(id);
+    switchSection("detail");
+  });
+
+  /*********** 导出 / 导入 ***********/
+  document.getElementById("btnExport").addEventListener("click", ()=>{
+    const data = { version:1, exportedAt: new Date().toISOString(), problems, notes:document.getElementById("notesInput").value || "", resources };
+    const blob = new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "algo_data_backup_"+Date.now()+".json";
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById("importFileInput").addEventListener("change", (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      try{
+        const data = JSON.parse(ev.target.result);
+        if(!data || (typeof data !== "object")) { alert("文件格式不符合预期。"); return; }
+        if(confirm("导入数据将覆盖当前本地数据，是否继续？")){
+          problems = data.problems || problems;
+          if(typeof data.notes === "string"){ document.getElementById("notesInput").value = data.notes; localStorage.setItem(NOTES_KEY, data.notes); }
+          if(Array.isArray(data.resources)){ resources = data.resources; localStorage.setItem(RES_KEY, JSON.stringify(resources)); }
+          saveProblems(); saveResources(); renderNotes(); alert("导入完成。");
+        }
+      }catch(err){
+        alert("解析 JSON 失败：" + err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  });
+
+  /*********** 笔记 保存/渲染/TOC ***********/
+  const notesInput = document.getElementById("notesInput");
+  const notesRender = document.getElementById("notesRender");
+  const tocList = document.getElementById("tocList");
+  function simpleMarkdownRender(md){
+    // 支持：标题 # ## ###、代码块 ``` ```、行内 `code`、加粗 ** **、斜体 * *
+    const lines = md.split('\n');
+    let out = [];
+    let inCode = false;
+    let codeBuf = [];
+    for(let i=0;i<lines.length;i++){
+      const l = lines[i];
+      if(l.trim().startsWith("```")){
+        if(!inCode){ inCode = true; codeBuf = []; } else { inCode = false; out.push('<pre class="code-block"><code>'+escapeHtml(codeBuf.join('\n'))+'</code></pre>'); }
+        continue;
+      }
+      if(inCode){ codeBuf.push(l); continue; }
+      if(/^#{3}\s+/.test(l)){ out.push('<h3>'+escapeHtml(l.replace(/^#{3}\s+/,''))+'</h3>'); continue; }
+      if(/^#{2}\s+/.test(l)){ out.push('<h2>'+escapeHtml(l.replace(/^#{2}\s+/,''))+'</h2>'); continue; }
+      if(/^#{1}\s+/.test(l)){ out.push('<h1>'+escapeHtml(l.replace(/^#{1}\s+/,''))+'</h1>'); continue; }
+      if(l.trim()===""){ out.push('<p></p>'); continue; }
+      // inline replacements
+      let t = escapeHtml(l)
+          .replace(/\\`([^`]+)\\`/g, (m,m1)=>'<code>'+m1+'</code>') // escaped
+          .replace(/`([^`]+)`/g, (m,m1)=>'<code>'+m1+'</code>')
+          .replace(/\*\*([^*]+)\*\*/g, (m,m1)=>'<strong>'+m1+'</strong>')
+          .replace(/\*([^*]+)\*/g, (m,m1)=>'<em>'+m1+'</em>');
+      out.push('<p>'+t+'</p>');
+    }
+    return out.join('');
+  }
+  function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function buildToc(md){
+    const lines = md.split('\n');
+    const toc = [];
+    for(const l of lines){
+      const m = l.match(/^(#{1,3})\s+(.*)$/);
+      if(m){
+        toc.push({ level: m[1].length, text: m[2].trim() });
+      }
+    }
+    return toc;
+  }
+
+  function renderNotes(){
+    const md = notesInput.value || "";
+    notesRender.innerHTML = simpleMarkdownRender(md);
+    // build toc
+    const toc = buildToc(md);
+    tocList.innerHTML = "";
+    toc.forEach((item, idx)=>{
+      const div = document.createElement("div");
+      div.className = "toc-item toc-h"+item.level;
+      div.textContent = item.text;
+      div.addEventListener("click", ()=>{
+        // 在编辑器中跳转到 first occurrence
+        const lines = notesInput.value.split('\n');
+        let pos = 0;
+        for(let i=0;i<lines.length;i++){
+          if(lines[i].replace(/^#{1,3}\s+/,'').trim() === item.text){
+            // calculate char index
+            let idxChar = 0;
+            for(let k=0;k<i;k++) idxChar += lines[k].length + 1;
+            notesInput.focus();
+            notesInput.setSelectionRange(idxChar, idxChar + lines[i].length);
+            // also scroll render to corresponding header
+            const headers = notesRender.querySelectorAll('h1,h2,h3');
+            if(headers[idx]) headers[idx].scrollIntoView({behavior:'smooth',block:'center'});
+            break;
+          }
+        }
+      });
+      tocList.appendChild(div);
+    });
+    saveNotes();
+  }
+
+  // toolbar actions for notes
+  document.getElementById("btnInsertH1").addEventListener("click", ()=>{
+    insertAtCursor(notesInput, "# 新标题\n");
+    renderNotes();
+  });
+  document.getElementById("btnInsertH2").addEventListener("click", ()=>{
+    insertAtCursor(notesInput, "## 新子标题\n");
+    renderNotes();
+  });
+  document.getElementById("btnInsertH3").addEventListener("click", ()=>{
+    insertAtCursor(notesInput, "### 新小标题\n");
+    renderNotes();
+  });
+  document.getElementById("btnClearNotes").addEventListener("click", ()=>{
+    if(confirm("清空笔记将无法恢复，是否继续？")){ notesInput.value = ""; renderNotes(); }
+  });
+  function insertAtCursor(textarea, text){
+    const start = textarea.selectionStart || 0;
+    const end = textarea.selectionEnd || 0;
+    const v = textarea.value;
+    textarea.value = v.slice(0,start) + text + v.slice(end);
+    textarea.selectionStart = textarea.selectionEnd = start + text.length;
+    textarea.focus();
+  }
+  notesInput.addEventListener("input", renderNotes);
+
+  /*********** 详情页（增强：支持 date 字段 yyyy/mm/dd 显示） ***********/
+  const detailSection = document.getElementById("detailSection");
+  const detailPageTitle = document.getElementById("detailPageTitle");
+  const detailPageMetaSource = document.getElementById("detailPageMetaSource");
+  const detailPageMetaDifficulty = document.getElementById("detailPageMetaDifficulty");
+  const detailPageMetaTags = document.getElementById("detailPageMetaTags");
+  const detailPageMetaStatus = document.getElementById("detailPageMetaStatus");
+
+  const detailInputTitle = document.getElementById("detailInputTitle");
+  const detailInputSource = document.getElementById("detailInputSource");
+  const detailInputDifficulty = document.getElementById("detailInputDifficulty");
+  const detailInputTags = document.getElementById("detailInputTags");
+  const detailInputStatus = document.getElementById("detailInputStatus");
+  const detailInputIdea = document.getElementById("detailInputIdea");
+  const detailInputPitfalls = document.getElementById("detailInputPitfalls");
+  const detailInputLang = document.getElementById("detailInputLang");
+  const detailInputCode = document.getElementById("detailInputCode");
+  const codeLangTag = document.getElementById("codeLangTag");
+  const detailInputDate = document.getElementById("detailInputDate");
+  const tagsDatalist = document.getElementById("tagsDatalist");
+
+  const btnBackToList = document.getElementById("btnBackToList");
+  const btnDeleteProblemPage = document.getElementById("btnDeleteProblemPage");
+  const btnMarkReview = document.getElementById("btnMarkReview");
+  const btnMarkMastered = document.getElementById("btnMarkMastered");
+
+  let currentProblemId = null;
+
+  function openDetailPage(id){
+    const p = problems.find(x=>x.id===id);
+    if(!p) return;
+    currentProblemId = id;
+    detailPageTitle.textContent = p.title || "(未命名题目)";
+    detailPageMetaSource.textContent = p.source || "未设置来源";
+    detailPageMetaDifficulty.textContent = p.difficulty || "未设置难度";
+    detailPageMetaTags.textContent = (p.tags && p.tags.length) ? p.tags.join(" · ") : "未设置标签";
+    detailPageMetaStatus.textContent = p.status || "未做";
+
+    detailInputTitle.value = p.title || "";
+    detailInputSource.value = p.source || "";
+    detailInputDifficulty.value = p.difficulty || "";
+    detailInputTags.value = (p.tags || []).join(", ");
+    detailInputStatus.value = p.status || "未做";
+    detailInputIdea.value = p.idea || "";
+    detailInputPitfalls.value = p.pitfalls || "";
+    detailInputLang.value = p.lang || "cpp";
+    detailInputCode.value = p.code || "";
+    codeLangTag.textContent = langLabel(p.lang || "cpp");
+
+    // 显示为 yyyy/mm/dd（界面）
+    detailInputDate.value = p.date ? isoToDisplay(p.date) : "";
+
+    // 更新 datalist（现有标签）
+    populateTagsDatalist();
+
+    switchSection("detail");
+  }
+  function closeDetailPage(){ currentProblemId = null; switchSection("home"); }
+
+  btnBackToList.addEventListener("click", closeDetailPage);
+  function langLabel(lang){ switch(lang){ case "cpp": return "C++"; case "java": return "Java"; case "python": return "Python"; case "go": return "Go"; case "js": return "JavaScript"; default: return lang || "代码"; } }
+
+  function updateCurrentProblem(mutator){
+    if(!currentProblemId) return;
+    const idx = problems.findIndex(p=>p.id===currentProblemId);
+    if(idx === -1) return;
+    mutator(problems[idx]);
+    problems[idx].updatedAt = Date.now();
+    saveProblems();
+  }
+  function updateDetailPageMetaFromCurrent(){
+    const p = problems.find(x=>x.id===currentProblemId);
+    if(!p) return;
+    detailPageTitle.textContent = p.title || "(未命名题目)";
+    detailPageMetaSource.textContent = p.source || "未设置来源";
+    detailPageMetaDifficulty.textContent = p.difficulty || "未设置难度";
+    detailPageMetaTags.textContent = (p.tags && p.tags.length) ? p.tags.join(" · ") : "未设置标签";
+    detailPageMetaStatus.textContent = p.status || "未做";
+    codeLangTag.textContent = langLabel(p.lang || "cpp");
+  }
+
+  // 绑定输入更新
+  detailInputTitle.addEventListener("input", ()=>{ const title = detailInputTitle.value; detailPageTitle.textContent = title || "(未命名题目)"; updateCurrentProblem(p=>{ p.title = title; }); });
+  detailInputSource.addEventListener("input", ()=>{ const v = detailInputSource.value; detailPageMetaSource.textContent = v || "未设置来源"; updateCurrentProblem(p=>{ p.source = v; }); });
+  detailInputDifficulty.addEventListener("change", ()=>{ const v = detailInputDifficulty.value; detailPageMetaDifficulty.textContent = v || "未设置难度"; updateCurrentProblem(p=>{ p.difficulty = v; }); });
+  detailInputTags.addEventListener("input", ()=>{ /* 不立即保存分割，等失焦或回车处理 */ });
+  detailInputTags.addEventListener("blur", ()=>{ processTagsInputAndSave(); });
+  detailInputTags.addEventListener("keydown", (e)=>{ if(e.key === "Enter"){ e.preventDefault(); detailInputTags.blur(); } });
+  function processTagsInputAndSave(){
+    const v = detailInputTags.value;
+    const arr = v.split(",").map(x=>x.trim()).filter(Boolean);
+    detailPageMetaTags.textContent = arr.length ? arr.join(" · ") : "未设置标签";
+    updateCurrentProblem(p=>{ p.tags = arr; });
+    populateTagsDatalist();
+  }
+
+  detailInputStatus.addEventListener("change", ()=>{ const v = detailInputStatus.value; detailPageMetaStatus.textContent = v || "未做"; updateCurrentProblem(p=>{ p.status = v; }); });
+  detailInputIdea.addEventListener("input", ()=>{ const v = detailInputIdea.value; updateCurrentProblem(p=>{ p.idea = v; }); });
+  detailInputPitfalls.addEventListener("input", ()=>{ const v = detailInputPitfalls.value; updateCurrentProblem(p=>{ p.pitfalls = v; }); });
+  detailInputLang.addEventListener("change", ()=>{ const v = detailInputLang.value; codeLangTag.textContent = langLabel(v); updateCurrentProblem(p=>{ p.lang = v; }); });
+  detailInputCode.addEventListener("input", ()=>{ const v = detailInputCode.value; updateCurrentProblem(p=>{ p.code = v; }); });
+
+  // 关联日期：界面格式 yyyy/mm/dd -> 保存 ISO yyyy-mm-dd
+  function displayToIso(display){
+    // accept yyyy/mm/dd or yyyy-mm-dd, return yyyy-mm-dd or null
+    if(!display) return null;
+    const s = display.trim().replace(/-/g,'/'); // normalize
+    const m = s.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+    if(!m) return null;
+    const y = Number(m[1]), mo = Number(m[2]), d = Number(m[3]);
+    if(mo<1 || mo>12 || d<1 || d>31) return null;
+    const mm = ('0'+mo).slice(-2);
+    const dd = ('0'+d).slice(-2);
+    return `${y}-${mm}-${dd}`;
+  }
+  function isoToDisplay(iso){
+    if(!iso) return "";
+    const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(!m) return iso;
+    return `${m[1]}/${m[2]}/${m[3]}`;
+  }
+
+  detailInputDate.addEventListener("blur", ()=>{ const disp = detailInputDate.value.trim(); const iso = displayToIso(disp); if(iso){ updateCurrentProblem(p=>{ p.date = iso; }); updateCalendar(); } else if(disp === ""){ updateCurrentProblem(p=>{ p.date = null; }); updateCalendar(); } else { alert("日期格式应为 yyyy/mm/dd（例如 2025/12/04）或清空以取消关联日期。"); detailInputDate.value = ""; } });
+
+  btnMarkReview.addEventListener("click", ()=>{ detailInputStatus.value = "需复习"; detailPageMetaStatus.textContent = "需复习"; updateCurrentProblem(p=>{ p.status = "需复习"; }); });
+  btnMarkMastered.addEventListener("click", ()=>{ detailInputStatus.value = "已掌握"; detailPageMetaStatus.textContent = "已掌握"; updateCurrentProblem(p=>{ p.status = "已掌握"; }); });
+
+  btnDeleteProblemPage.addEventListener("click", ()=>{ if(!currentProblemId) return; if(confirm("确定删除这道题目及其所有记录吗？")){ problems = problems.filter(p=>p.id!==currentProblemId); saveProblems(); closeDetailPage(); } });
+
+  /*********** 更新/生成 标签下拉（datalist + 首页筛选） ***********/
+  function populateTagsDatalist(){
+    const tags = collectAllTags();
+    tagsDatalist.innerHTML = "";
+    tags.forEach(t=>{
+      const opt = document.createElement("option");
+      opt.value = t;
+      tagsDatalist.appendChild(opt);
+    });
+    updateTagFilters();
+  }
+  function updateTagFilters(){
+    const tags = collectAllTags();
+    // update filterTag select (首页)
+    const sel = document.getElementById("filterTag");
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">标签：全部</option>';
+    tags.forEach(t=>{
+      const o = document.createElement("option");
+      o.value = t;
+      o.textContent = t;
+      sel.appendChild(o);
+    });
+    // keep previous selection if still exists
+    if(prev) sel.value = prev;
+  }
+
+  /*********** 导航 ***********/
+  function switchSection(name){
+    document.querySelectorAll(".nav-btn").forEach(b=>{ b.classList.toggle("active", b.dataset.section === name); });
+    document.querySelectorAll(".section").forEach(sec=>{ sec.classList.remove("active"); });
+    if(name === "home"){ document.getElementById("home").classList.add("active"); document.getElementById("detailSection").classList.remove("active"); }
+    else if(name === "detail"){ document.getElementById("home").classList.remove("active"); document.getElementById("detailSection").classList.add("active"); }
+    else{ document.getElementById(name).classList.add("active"); document.getElementById("detailSection").classList.remove("active"); }
+  }
+  document.querySelectorAll(".nav-btn").forEach(btn=>{ btn.addEventListener("click",()=>{ switchSection(btn.dataset.section); }); });
+
+  /*********** 搜索 & 筛选 ***********/
+  searchInput.addEventListener("input", renderProblemTable);
+  filterDifficulty.addEventListener("change", renderProblemTable);
+  filterTag.addEventListener("change", renderProblemTable);
+
+  /*********** 日历实现（基于问题的 date 字段） ***********/
+  const calGridDays = document.getElementById("calGridDays");
+  const calMonthLabel = document.getElementById("calMonthLabel");
+  const calPrev = document.getElementById("calPrev");
+  const calNext = document.getElementById("calNext");
+  const calListLabel = document.getElementById("calListLabel");
+  const calItems = document.getElementById("calItems");
+
+  let calDate = new Date();
+  calDate.setDate(1);
+
+  function formatYYYYMMDD(d){ const y=d.getFullYear(); const m=('0'+(d.getMonth()+1)).slice(-2); const day=('0'+d.getDate()).slice(-2); return `${y}-${m}-${day}`; }
+
+  function updateCalendar(){
+    // render month view
+    calGridDays.innerHTML = "";
+    const year = calDate.getFullYear();
+    const month = calDate.getMonth();
+    calMonthLabel.textContent = `${year} 年 ${month+1} 月`;
+    const firstDay = new Date(year,month,1);
+    const startWeek = firstDay.getDay(); // 0-6
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+
+    // fill blanks for previous month
+    for(let i=0;i<startWeek;i++){
+      const div = document.createElement("div");
+      div.className = "cal-day";
+      div.style.background="transparent";
+      div.style.border="none";
+      calGridDays.appendChild(div);
+    }
+
+    // gather mapping from date -> problems with that date
+    const map = {};
+    for(const p of problems){
+      if(p.date){
+        map[p.date] = map[p.date] || [];
+        map[p.date].push(p);
+      }
+    }
+
+    const todayStr = formatYYYYMMDD(new Date());
+
+    for(let d=1; d<=daysInMonth; d++){
+      const dt = new Date(year, month, d);
+      const iso = formatYYYYMMDD(dt);
+      const div = document.createElement("div");
+      div.className = "cal-day" + (iso===todayStr ? " today" : "");
+      div.dataset.date = iso;
+      div.innerHTML = `<div class="date-num">${d}</div>`;
+      if(map[iso] && map[iso].length){
+        // show up to 3 dots (or small badges)
+        const dotsWrap = document.createElement("div");
+        dotsWrap.style.position = "absolute";
+        dotsWrap.style.right = "6px";
+        dotsWrap.style.bottom = "6px";
+        for(let i=0;i<Math.min(3,map[iso].length);i++){
+          const dot = document.createElement("span");
+          dot.className = "dot";
+          dot.title = map[iso][i].title;
+          dot.style.background = i===0? "var(--accent)" : (i===1? "var(--primary)" : "#f39c12");
+          dotsWrap.appendChild(dot);
+        }
+        div.appendChild(dotsWrap);
+      }
+      div.addEventListener("click", ()=>{ onCalendarDateClick(iso); });
+      calGridDays.appendChild(div);
+    }
+  }
+
+  function onCalendarDateClick(iso){
+    calListLabel.textContent = `选中日期：${isoToDisplay(iso)}`;
+    const list = problems.filter(p=>p.date === iso).sort((a,b)=> (b.updatedAt||0)-(a.updatedAt||0));
+    if(!list.length){
+      calItems.innerHTML = `<div style="color:var(--text-sub)">该日期没有关联题目。可在题目详情中设置“关联日期”。</div>`;
+      return;
+    }
+    calItems.innerHTML = "";
+    list.forEach(p=>{
+      const row = document.createElement("div");
+      row.style.padding = "8px 6px";
+      row.style.borderBottom = "1px dashed rgba(230,238,242,0.9)";
+      const title = document.createElement("div");
+      title.style.fontWeight = 800;
+      title.textContent = p.title || "(未命名)";
+      const meta = document.createElement("div");
+      meta.style.fontSize = "13px";
+      meta.style.color = "var(--text-sub)";
+      meta.textContent = `${p.source || '-'} · ${p.difficulty || '-'} · ${p.status || '-'}`;
+      const btn = document.createElement("button");
+      btn.className = "btn-outline";
+      btn.style.marginTop = "8px";
+      btn.textContent = "打开";
+      btn.addEventListener("click", ()=>{ openDetailPage(p.id); });
+      row.appendChild(title);
+      row.appendChild(meta);
+      row.appendChild(btn);
+      calItems.appendChild(row);
+    });
+  }
+
+  calPrev.addEventListener("click", ()=>{ calDate.setMonth(calDate.getMonth()-1); updateCalendar(); });
+  calNext.addEventListener("click", ()=>{ calDate.setMonth(calDate.getMonth()+1); updateCalendar(); });
+
+  /*********** 资源（卡片式） ***********/
+  const resourcesGrid = document.getElementById("resourcesGrid");
+  function renderResources(){
+    resourcesGrid.innerHTML = "";
+    if(!resources.length){
+      resourcesGrid.innerHTML = '<div style="color:var(--text-sub);padding:12px">暂无资源，使用上方表单添加常用链接/题单。</div>';
+      return;
+    }
+    resources.forEach((r, idx)=>{
+      const card = document.createElement("div");
+      card.className = "res-card";
+      const title = document.createElement("div"); title.className="res-title"; title.textContent = r.title || "未命名";
+      const desc = document.createElement("div"); desc.className="res-desc"; desc.textContent = r.desc || "";
+      const actions = document.createElement("div"); actions.className="res-actions";
+      if(r.url){
+        const a = document.createElement("a"); a.href = r.url; a.target="_blank"; a.className="btn-outline"; a.textContent = "打开链接";
+        actions.appendChild(a);
+      }
+      const del = document.createElement("button"); del.className="btn-danger"; del.textContent="删除"; del.addEventListener("click", ()=>{
+        if(confirm("删除该资源？")){ resources.splice(idx,1); saveResources(); }
+      });
+      actions.appendChild(del);
+      card.appendChild(title);
+      card.appendChild(desc);
+      card.appendChild(actions);
+      resourcesGrid.appendChild(card);
+    });
+  }
+
+  document.getElementById("btnAddResource").addEventListener("click", ()=>{
+    const t = document.getElementById("resTitle").value.trim();
+    const u = document.getElementById("resUrl").value.trim();
+    const d = document.getElementById("resDesc").value.trim();
+    if(!t){ alert("请输入资源标题"); return; }
+    resources.push({ title: t, url: u, desc: d, id: Date.now().toString(36) });
+    document.getElementById("resTitle").value = ""; document.getElementById("resUrl").value = ""; document.getElementById("resDesc").value = "";
+    saveResources();
+  });
+
+  /*********** 初始化 & 绑定 ***********/
+  loadData();
+  renderProblemTable();
+  renderNotes();
+  renderResources();
+  populateTagsDatalist();
+  updateCalendar();
+
+  // notes auto-save throttle
+  let notesTimer = null;
+  notesInput.addEventListener("input", ()=>{
+    if(notesTimer) clearTimeout(notesTimer);
+    notesTimer = setTimeout(()=>{ renderNotes(); notesTimer=null; }, 200);
+  });
+
+  // keyboard shortcut: Ctrl+S 导出数据
+  window.addEventListener("keydown", (e)=>{
+    if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's'){ e.preventDefault(); document.getElementById("btnExport").click(); }
+  });
+
+  // utilities: escape HTML
+  function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeTracker - 我的刷题日记</title>
+    <!-- 引入 Tailwind CSS 用于快速布局 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Marked.js 用于解析 Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- 引入 Chart.js 用于数据可视化 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* 自定义样式覆盖 */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f7f8fa; }
+        .nav-item.active { border-bottom: 2px solid #2563eb; color: #2563eb; font-weight: 600; }
+        .calendar-day { min-height: 100px; border: 1px solid #e5e7eb; transition: all 0.2s; }
+        .calendar-day:hover { background-color: #f9fafb; }
+        .problem-tag { font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; margin-right: 4px; }
+        .tag-easy { background-color: #e0f2fe; color: #0284c7; }
+        .tag-medium { background-color: #fef9c3; color: #ca8a04; }
+        .tag-hard { background-color: #fee2e2; color: #dc2626; }
+        
+        /* 编辑器模拟 */
+        .code-editor { 
+            font-family: 'Courier New', Courier, monospace; 
+            background: #1e1e1e; 
+            color: #d4d4d4; 
+            min-height: 200px; /* Make it visible */
+            resize: vertical; /* Allow resizing */
+        }
+        .code-block-display, .markdown-content-display { /* For displaying code/markdown in solution/insight tabs */
+            font-family: 'Courier New', Courier, monospace; 
+            background: #f0f0f0; 
+            color: #333; 
+            padding: 1rem; 
+            border-radius: 0.375rem; 
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.5;
+            font-size: 0.875rem;
+        }
+        .markdown-content-display {
+            font-family: inherit; /* Use body font for general markdown */
+            background: none;
+            padding: 0;
+            overflow: visible;
+            white-space: normal;
+            word-break: normal;
+        }
+
+        /* 标签选择器样式 */
+        .tag-dropdown-container { position: relative; display: inline-block; width: 100%; }
+        .tag-dropdown { 
+            position: absolute; 
+            top: 100%; 
+            left: 0; 
+            right: 0; 
+            background-color: white; 
+            border: 1px solid #d1d5db; 
+            border-radius: 0.375rem; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10;
+        }
+        .tag-dropdown-item { 
+            padding: 0.5rem 0.75rem; 
+            cursor: pointer; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .tag-dropdown-item:hover { background-color: #f3f4f6; }
+        .selected-tag { 
+            display: inline-flex; 
+            align-items: center; 
+            background-color: #e5e7eb; 
+            padding: 0.25rem 0.5rem; 
+            border-radius: 0.375rem; 
+            margin-right: 0.5rem; 
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .selected-tag button { 
+            margin-left: 0.5rem; 
+            font-weight: bold; 
+            color: #4b5563; 
+        }
+
+        /* 题目详情页布局 */
+        .leetcode-layout { 
+            display: grid; 
+            grid-template-columns: 1fr; /* Default to single column for mobile */
+            gap: 1rem; 
+            min-height: calc(100vh - 120px); /* Adjust height for nav and footer if any */
+        }
+        @media (min-width: 768px) { /* Medium screens and up */
+            .leetcode-layout { 
+                grid-template-columns: 1fr 1fr; /* Two columns for desktop */
+                min-height: calc(100vh - 120px);
+            }
+        }
+        .detail-tab-button {
+            padding: 0.5rem 1rem;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .detail-tab-button.active {
+            border-bottom: 2px solid #2563eb;
+            color: #2563eb;
+            font-weight: 600;
+        }
+
+        /* Markdown prose styling */
+        .prose :where(h1):not(:where([class~="not-prose"] *)) { font-size: 1.875em; margin-top: 1.5em; margin-bottom: 0.8333333em; font-weight: 700; }
+        .prose :where(h2):not(:where([class~="not-prose"] *)) { font-size: 1.5em; margin-top: 1.25em; margin-bottom: 0.8333333em; font-weight: 600; }
+        .prose :where(h3):not(:where([class~="not-prose"] *)) { font-size: 1.25em; margin-top: 1em; margin-bottom: 0.5em; font-weight: 600; }
+        .prose :where(p):not(:where([class~="not-prose"] *)) { margin-top: 1em; margin-bottom: 1em; }
+        .prose :where(ul):not(:where([class~="not-prose"] *)) { margin-top: 1em; margin-bottom: 1em; padding-left: 1.5em; list-style-type: disc; }
+        .prose :where(ol):not(:where([class~="not-prose"] *)) { margin-top: 1em; margin-bottom: 1em; padding-left: 1.5em; list-style-type: decimal; }
+        .prose :where(li):not(:where([class~="not-prose"] *)) { margin-top: 0.5em; margin-bottom: 0.5em; }
+        .prose :where(a):not(:where([class~="not-prose"] *)) { color: #2563eb; text-decoration: underline; }
+        .prose :where(pre):not(:where([class~="not-prose"] *)) { background-color: #e5e7eb; color: #374151; padding: 1em; border-radius: 0.375rem; overflow-x: auto; margin-top: 1em; margin-bottom: 1em; }
+        .prose :where(code):not(:where([class~="not-prose"] *)) { background-color: #e5e7eb; padding: 0.2em 0.4em; border-radius: 0.25rem; font-size: 0.875em; }
+        .prose :where(blockquote):not(:where([class~="not-prose"] *)) { border-left: 4px solid #d1d5db; padding-left: 1em; color: #6b7280; margin-top: 1em; margin-bottom: 1em; }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white shadow-sm fixed w-full z-10 top-0 h-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex justify-between items-center">
+            <div class="flex items-center">
+                <div class="text-2xl font-bold text-blue-600 mr-8">CodeTracker</div>
+                <div class="hidden md:flex space-x-8 h-16">
+                    <button onclick="router('home')" id="nav-home" class="nav-item flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-700">首页</button>
+                    <button onclick="router('problems')" id="nav-problems" class="nav-item flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-700">题库/分类</button>
+                    <button onclick="router('calendar')" id="nav-calendar" class="nav-item flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-700">日历</button>
+                    <button onclick="router('insights')" id="nav-insights" class="nav-item flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-700">心得感悟</button>
+                    <button onclick="router('resources')" id="nav-resources" class="nav-item flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-700">资源</button>
+                </div>
+            </div>
+            <div>
+                <button onclick="showAddModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow transition">+ 记录新题</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 页面内容容器 -->
+    <main class="pt-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen pb-10">
+        
+        <!-- 1. 首页 (Dashboard) -->
+        <section id="page-home" class="page-section">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- 数据统计卡片 -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">总刷题数</h3>
+                    <p class="text-4xl font-bold text-blue-600" id="total-problems-count">0</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">本月活跃天数</h3>
+                    <p class="text-4xl font-bold text-green-600" id="active-days">0</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center justify-center">
+                    <div style="width: 150px; height: 150px;">
+                        <canvas id="difficultyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="text-xl font-bold mb-4 text-gray-800">最近练习</h2>
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">题目</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">难度</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">标签</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日期</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="recent-problems-list">
+                        <!-- JS填充内容 -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 2. 题库/分类页 (Problems) -->
+        <section id="page-problems" class="page-section hidden">
+            <div class="flex flex-col md:flex-row gap-6">
+                <!-- 左侧侧边栏：分类 -->
+                <div class="w-full md:w-1/4">
+                    <div class="bg-white rounded-lg shadow-sm p-4 sticky top-24">
+                        <h3 class="font-bold text-lg mb-4 flex justify-between items-center">
+                            标签分类
+                            <button onclick="showAddTagModal()" class="text-blue-600 text-sm hover:underline">+ 新建分类</button>
+                        </h3>
+                        <div class="flex flex-wrap gap-2" id="category-tags">
+                            <button class="bg-gray-800 text-white px-3 py-1 rounded-full text-sm transition" onclick="renderProblemList('all')">全部</button>
+                            <!-- JS生成标签 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右侧：列表与搜索 -->
+                <div class="w-full md:w-3/4">
+                    <div class="mb-4 flex gap-2">
+                        <input type="text" id="search-input" placeholder="搜索题目名称或编号..." class="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <button onclick="renderProblemList()" class="bg-blue-600 text-white px-6 py-2 rounded-md">搜索</button>
+                        <button onclick="clearProblemSearch()" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300">清空</button>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">状态</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">题目</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">难度</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="all-problems-list">
+                                <!-- JS填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 日历页 (Calendar) -->
+        <section id="page-calendar" class="page-section hidden">
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold" id="calendar-month-year"></h2>
+                    <div class="space-x-2">
+                        <button onclick="changeMonth(-1)" class="px-3 py-1 border rounded hover:bg-gray-50">&lt;</button>
+                        <button onclick="changeMonth(1)" class="px-3 py-1 border rounded hover:bg-gray-50">&gt;</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-7 gap-0 border-t border-l border-gray-200">
+                    <!-- 星期头 -->
+                    <div class="p-2 text-center font-bold bg-gray-50 border-r border-b border-gray-200">日</div>
+                    <div class="p-2 text-center font-bold bg-gray-50 border-r border-b border-gray-200">一</div>
+                    <div class="p-2 text-center font-bold bg-gray-50 border-r border-b border-gray-200">二</div>
+                    <div class="p-2 text-center font-bold bg-gray-50 border-r border-b border-gray-200">三</div>
+                    <div class="p-2 text-center font-bold bg-gray-50 border-r border-b border-gray-200">四</div>
+                    <div class="p-2 text-center font-bold bg-gray-50 border-r border-b border-gray-200">五</div>
+                    <div class="p-2 text-center font-bold bg-gray-50 border-r border-b border-gray-200">六</div>
+                </div>
+                <div class="grid grid-cols-7 gap-0 border-l border-gray-200" id="calendar-grid">
+                    <!-- JS生成日历格子 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. 题目详情页 (Details) -->
+        <section id="page-detail" class="page-section hidden">
+            <!-- 返回按钮：根据上一个页面决定返回哪里 -->
+            <button onclick="goBack()" class="mb-4 text-blue-600 hover:underline">&larr; 返回</button>
+            <div class="leetcode-layout">
+                <!-- 左侧：题目详情 -->
+                <div class="bg-white rounded-lg shadow-sm flex flex-col border border-gray-200 overflow-hidden">
+                    <div class="flex border-b border-gray-200">
+                        <button id="tab-btn-problem" onclick="showDetailTab('problem')" class="detail-tab-button px-4 py-2 text-sm text-gray-600 hover:text-blue-600 active">题目</button>
+                        <button id="tab-btn-solution" onclick="showDetailTab('solution')" class="detail-tab-button px-4 py-2 text-sm text-gray-600 hover:text-blue-600">我的题解</button>
+                        <button id="tab-btn-submissions" onclick="showDetailTab('submissions')" class="detail-tab-button px-4 py-2 text-sm text-gray-600 hover:text-blue-600">提交记录</button>
+                    </div>
+
+                    <div id="detail-tab-content-problem" class="p-6 overflow-y-auto flex-1">
+                        <div class="flex justify-between items-start mb-4">
+                            <h1 class="text-2xl font-bold" id="detail-title">题目名称</h1>
+                            <span id="detail-difficulty" class="px-2 py-1 rounded text-xs font-bold">难度</span>
+                        </div>
+                        <div class="flex gap-2 mb-6" id="detail-tags"></div>
+                        <div class="prose max-w-none text-gray-700" id="detail-content">
+                            <!-- Markdown 内容 -->
+                        </div>
+                        <div class="mt-8 pt-4 border-t border-gray-200" id="detail-examples-section">
+                            <h3 class="text-lg font-semibold mb-3">示例</h3>
+                            <div id="detail-examples">
+                                <!-- JS填充示例 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="detail-tab-content-solution" class="p-6 overflow-y-auto flex-1 hidden">
+                        <h2 class="text-xl font-bold mb-4">我的题解和笔记</h2>
+                        <div class="code-block-display" id="detail-solution-code">
+                            <!-- 题解代码 -->
+                        </div>
+                    </div>
+
+                    <div id="detail-tab-content-submissions" class="p-6 overflow-y-auto flex-1 hidden">
+                        <h2 class="text-xl font-bold mb-4">提交记录 (模拟)</h2>
+                        <p class="text-gray-600">此功能目前仅为占位符。由于是纯前端应用，无法实现真正的代码提交和运行记录。</p>
+                        <ul class="list-disc pl-5 mt-4 text-gray-700">
+                            <li>2023-12-01 10:30 - 通过 (模拟)</li>
+                            <li>2023-11-28 15:45 - 错误 (模拟)</li>
+                        </ul>
+                    </div>
+
+                </div>
+
+                <!-- 右侧：代码编辑区域 -->
+                <div class="bg-white rounded-lg shadow-sm flex flex-col border border-gray-200 overflow-hidden">
+                    <div class="bg-gray-100 px-4 py-2 border-b border-gray-200 font-medium text-sm flex justify-between items-center">
+                        <span>代码编辑器</span>
+                        <div class="flex space-x-2">
+                            <button onclick="simulateRunCode()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs transition">运行</button>
+                            <button onclick="simulateSubmitCode()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition">提交</button>
+                        </div>
+                    </div>
+                    <textarea 
+                        id="detail-code-editor" 
+                        class="flex-1 p-4 code-editor w-full h-full resize-none border-none focus:outline-none" 
+                        onblur="saveCodeChanges()">// 在这里写你的代码...</textarea>
+                    
+                    <div class="bg-gray-100 px-4 py-2 border-t border-gray-200 text-sm text-gray-600">
+                        <p>💡 **提示：** 这是一个模拟编辑器。代码补全、自动提示和在线运行功能需要后端支持，目前无法实现。</p>
+                        <p>你的代码会在你切换页面或关闭此页面时自动保存到本地。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. 心得感悟页 (Insights) -->
+        <section id="page-insights" class="page-section hidden">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800 flex justify-between items-center">
+                我的心得感悟
+                <button onclick="showAddInsightModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow transition">+ 记录新感悟</button>
+            </h2>
+
+            <div class="mb-4 flex flex-wrap gap-2 items-center">
+                <span class="text-sm font-medium text-gray-700">筛选标签:</span>
+                <button class="bg-gray-800 text-white px-3 py-1 rounded-full text-sm transition" onclick="renderInsights('all')">全部</button>
+                <div id="insight-filter-tags" class="flex flex-wrap gap-2">
+                    <!-- JS生成标签 -->
+                </div>
+                <input type="date" id="insight-filter-date" class="border border-gray-300 rounded-md px-3 py-1 text-sm" onchange="renderInsights()">
+                <button onclick="clearInsightFilters()" class="bg-gray-200 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-300 text-sm">清空筛选</button>
+            </div>
+
+            <div id="insights-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- JS填充心得感悟卡片 -->
+            </div>
+            <p id="no-insights-message" class="text-center text-gray-500 mt-8 hidden">暂无心得感悟。</p>
+        </section>
+
+        <!-- 6. 资源页 (Resources) -->
+        <section id="page-resources" class="page-section hidden">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800 flex justify-between items-center">
+                我的学习资源
+                <button onclick="showAddResourceModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow transition">+ 添加新资源</button>
+            </h2>
+
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">标题</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">链接</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">描述</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">日期</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="resources-list">
+                        <!-- JS填充资源列表 -->
+                    </tbody>
+                </table>
+                <p id="no-resources-message" class="text-center text-gray-500 py-6 hidden">暂无学习资源。</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 添加题目模态框 -->
+    <div id="add-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+        <div class="relative top-10 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">记录新题目</h3>
+                <form id="add-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">题目名称</label>
+                        <input type="text" id="inp-title" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">难度</label>
+                            <select id="inp-difficulty" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                                <option value="Easy">简单</option>
+                                <option value="Medium">中等</option>
+                                <option value="Hard">困难</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">日期</label>
+                            <input type="date" id="inp-date" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">标签 (点击选择或输入新标签)</label>
+                        <div class="tag-dropdown-container">
+                            <div id="selected-tags-display" class="flex flex-wrap gap-1 p-2 border border-gray-300 rounded-md bg-gray-50 min-h-[38px]">
+                                <!-- 已选标签会显示在这里 -->
+                            </div>
+                            <input type="text" id="inp-tags-input" placeholder="输入标签名或从下方选择..." 
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                onfocus="showTagDropdown()" onblur="hideTagDropdownDelayed()">
+                            <div id="tag-dropdown" class="tag-dropdown hidden">
+                                <!-- 标签选项会在这里渲染 -->
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">题目描述 (Markdown)</label>
+                        <textarea id="inp-desc" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"></textarea>
+                    </div>
+
+                    <!-- 示例模块 -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-sm font-medium text-gray-700">示例</label>
+                            <button type="button" onclick="addExampleFields()" class="text-blue-600 text-sm hover:underline">+ 添加示例</button>
+                        </div>
+                        <div id="example-fields-container" class="space-y-3 p-3 border border-gray-200 rounded-md bg-gray-50">
+                            <!-- 示例输入框将在这里动态添加 -->
+                            <p class="text-xs text-gray-500">点击 "+ 添加示例" 按钮来添加输入/输出示例。</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">代码/笔记</label>
+                        <textarea id="inp-code" rows="5" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 font-mono text-sm bg-gray-50"></textarea>
+                    </div>
+                    <div class="flex justify-end gap-3 mt-4">
+                        <button type="button" onclick="closeAddModal()" class="bg-gray-200 px-4 py-2 rounded-md hover:bg-gray-300">取消</button>
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新建分类模态框 -->
+    <div id="add-tag-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">新建分类</h3>
+                <form id="add-tag-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">分类名称</label>
+                        <input type="text" id="inp-new-tag" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                    </div>
+                    <div class="flex justify-end gap-3 mt-4">
+                        <button type="button" onclick="closeAddTagModal()" class="bg-gray-200 px-4 py-2 rounded-md hover:bg-gray-300">取消</button>
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">添加</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加心得感悟模态框 -->
+    <div id="add-insight-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+        <div class="relative top-10 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">记录新心得感悟</h3>
+                <form id="add-insight-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">标题</label>
+                        <input type="text" id="inp-insight-title" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">日期</label>
+                        <input type="date" id="inp-insight-date" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">标签 (点击选择或输入新标签)</label>
+                        <div class="tag-dropdown-container">
+                            <div id="selected-insight-tags-display" class="flex flex-wrap gap-1 p-2 border border-gray-300 rounded-md bg-gray-50 min-h-[38px]">
+                                <!-- 已选标签会显示在这里 -->
+                            </div>
+                            <input type="text" id="inp-insight-tags-input" placeholder="输入标签名或从下方选择..." 
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                onfocus="showInsightTagDropdown()" onblur="hideInsightTagDropdownDelayed()">
+                            <div id="insight-tag-dropdown" class="tag-dropdown hidden">
+                                <!-- 标签选项会在这里渲染 -->
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">内容 (Markdown)</label>
+                        <textarea id="inp-insight-content" rows="8" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"></textarea>
+                    </div>
+                    <div class="flex justify-end gap-3 mt-4">
+                        <button type="button" onclick="closeAddInsightModal()" class="bg-gray-200 px-4 py-2 rounded-md hover:bg-gray-300">取消</button>
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 心得感悟详情模态框 (用于查看完整内容) -->
+    <div id="insight-detail-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+        <div class="relative top-10 mx-auto p-5 border w-full max-w-3xl shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h3 class="text-2xl font-bold text-gray-900" id="insight-detail-title"></h3>
+                <button onclick="closeInsightDetailModal()" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+            </div>
+            <div class="text-sm text-gray-600 mb-4">
+                <span id="insight-detail-date" class="mr-3"></span>
+                <span id="insight-detail-tags" class="flex flex-wrap gap-1"></span>
+            </div>
+            <div id="insight-detail-content" class="prose max-w-none text-gray-700 markdown-content-display">
+                <!-- 感悟内容 Markdown 渲染 -->
+            </div>
+            <div class="flex justify-end mt-6">
+                <button type="button" onclick="closeInsightDetailModal()" class="bg-gray-200 px-4 py-2 rounded-md hover:bg-gray-300">关闭</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 添加资源模态框 -->
+    <div id="add-resource-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-xl shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">添加新资源</h3>
+                <form id="add-resource-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">标题</label>
+                        <input type="text" id="inp-resource-title" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">链接</label>
+                        <input type="url" id="inp-resource-url" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">描述 (Markdown)</label>
+                        <textarea id="inp-resource-desc" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">日期</label>
+                        <input type="date" id="inp-resource-date" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                    </div>
+                    <div class="flex justify-end gap-3 mt-4">
+                        <button type="button" onclick="closeAddResourceModal()" class="bg-gray-200 px-4 py-2 rounded-md hover:bg-gray-300">取消</button>
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- 1. 数据管理 (模拟数据库) ---
+        let problems = JSON.parse(localStorage.getItem('leetcode_tracker_data')) || [];
+        let insights = JSON.parse(localStorage.getItem('leetcode_tracker_insights')) || [];
+        let resources = JSON.parse(localStorage.getItem('leetcode_tracker_resources')) || [];
+        let tags = JSON.parse(localStorage.getItem('leetcode_tracker_tags')) || ['数组', '链表', '哈希表', '动态规划', '二叉树', '图', '排序', '搜索']; // 预设标签
+        
+        // 用于生成唯一ID，确保跨所有数据类型不重复
+        let lastUsedId = Math.max(
+            problems.length > 0 ? Math.max(...problems.map(p => p.id)) : 0,
+            insights.length > 0 ? Math.max(...insights.map(i => i.id)) : 0,
+            resources.length > 0 ? Math.max(...resources.map(r => r.id)) : 0
+        ) + 1;
+
+        function getNextId() {
+            return lastUsedId++;
+        }
+
+        function saveData() {
+            localStorage.setItem('leetcode_tracker_data', JSON.stringify(problems));
+            localStorage.setItem('leetcode_tracker_insights', JSON.stringify(insights));
+            localStorage.setItem('leetcode_tracker_resources', JSON.stringify(resources));
+            localStorage.setItem('leetcode_tracker_tags', JSON.stringify(tags));
+            initDashboard(); // 更新数据后刷新首页
+            renderProblemList(); // 刷新题库页面
+            renderCalendar(); // 刷新日历页面
+            renderInsights(); // 刷新心得感悟页面
+            renderResources(); // 刷新资源页面
+        }
+
+        // --- 2. 路由控制 ---
+        function router(pageName, id = null) {
+            document.querySelectorAll('.page-section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+            if (pageName === 'detail' && id) {
+                document.getElementById('page-detail').classList.remove('hidden');
+                currentProblemIdInDetail = id; // 设置当前详情页题目ID
+                renderDetail(id);
+            } else {
+                document.getElementById(`page-${pageName}`).classList.remove('hidden');
+                const navBtn = document.getElementById(`nav-${pageName}`);
+                if (navBtn) navBtn.classList.add('active');
+                currentProblemIdInDetail = null; // 离开详情页时清空ID
+            }
+
+            if (pageName !== 'detail') { // 记录非详情页的页面，用于详情页返回
+                lastVisitedPage = pageName;
+            }
+
+            if (pageName === 'home') initDashboard();
+            if (pageName === 'problems') renderProblemList();
+            if (pageName === 'calendar') renderCalendar();
+            if (pageName === 'insights') renderInsights();
+            if (pageName === 'resources') renderResources();
+        }
+
+        let lastVisitedPage = 'home'; // 用于详情页返回
+        let currentProblemIdInDetail = null; // 用于记录当前详情页显示的题目ID
+
+        // 详情页返回逻辑
+        function goBack() {
+            // 在返回前，保存当前编辑器中的代码
+            if (currentProblemIdInDetail) {
+                saveCodeChanges();
+            }
+            router(lastVisitedPage);
+        }
+
+        // --- 3. 首页逻辑 ---
+        let difficultyChartInstance = null;
+        function initDashboard() {
+            document.getElementById('total-problems-count').innerText = problems.length;
+            
+            // 计算本月活跃天数
+            const now = new Date();
+            const thisMonthStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}`;
+            const activeDays = new Set(problems
+                .filter(p => p.date.startsWith(thisMonthStr))
+                .map(p => p.date)
+            );
+            document.getElementById('active-days').innerText = activeDays.size;
+
+            // 渲染最近列表 (前5个)
+            const recentList = [...problems].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+            const tbody = document.getElementById('recent-problems-list');
+            tbody.innerHTML = recentList.map(p => `
+                <tr class="hover:bg-gray-50 cursor-pointer" onclick="router('detail', ${p.id})">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${p.title}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <span class="problem-tag ${getDifficultyClass(p.difficulty)}">${getChineseDifficulty(p.difficulty)}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${p.tags.join(', ')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${p.date}</td>
+                </tr>
+            `).join('');
+
+            // 渲染图表
+            const counts = { Easy: 0, Medium: 0, Hard: 0 };
+            problems.forEach(p => counts[p.difficulty]++);
+            
+            const ctx = document.getElementById('difficultyChart').getContext('2d');
+            if (difficultyChartInstance) difficultyChartInstance.destroy();
+            
+            difficultyChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['简单', '中等', '困难'],
+                    datasets: [{
+                        data: [counts.Easy, counts.Medium, counts.Hard],
+                        backgroundColor: ['#e0f2fe', '#fef9c3', '#fee2e2'],
+                        borderColor: ['#0284c7', '#ca8a04', '#dc2626'],
+                        borderWidth: 1
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        // --- 4. 题库页逻辑 ---
+        let currentProblemFilterTag = 'all'; // 记录当前筛选标签
+
+        function renderProblemList(filterTag = currentProblemFilterTag) {
+            currentProblemFilterTag = filterTag; // 更新当前筛选标签
+
+            // 1. 渲染左侧标签
+            const tagContainer = document.getElementById('category-tags');
+            tagContainer.innerHTML = `<button class="tag-button ${currentProblemFilterTag === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'} px-3 py-1 rounded-full text-sm transition" onclick="renderProblemList('all')">全部</button>`;
+            tags.forEach(tag => {
+                const isActive = currentProblemFilterTag === tag ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300';
+                tagContainer.innerHTML += `<button class="tag-button ${isActive} px-3 py-1 rounded-full text-sm transition" onclick="renderProblemList('${tag}')">${tag}</button>`;
+            });
+
+            // 2. 过滤和搜索
+            const searchText = document.getElementById('search-input').value.toLowerCase();
+            let filtered = problems.filter(p => {
+                const matchTag = currentProblemFilterTag === 'all' || p.tags.includes(currentProblemFilterTag);
+                const matchSearch = p.title.toLowerCase().includes(searchText);
+                return matchTag && matchSearch;
+            });
+
+            // 3. 渲染表格
+            const tbody = document.getElementById('all-problems-list');
+            tbody.innerHTML = filtered.map(p => `
+                <tr class="hover:bg-gray-50 cursor-pointer">
+                    <td class="px-6 py-4 whitespace-nowrap"><span class="text-green-500">✔</span></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 hover:underline" onclick="router('detail', ${p.id})">${p.title}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm"><span class="problem-tag ${getDifficultyClass(p.difficulty)}">${getChineseDifficulty(p.difficulty)}</span></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <button onclick="deleteProblem(${p.id}); event.stopPropagation();" class="text-red-500 hover:text-red-700">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function clearProblemSearch() {
+            document.getElementById('search-input').value = ''; // 清空搜索框
+            renderProblemList('all'); // 重新渲染所有题目
+        }
+
+
+        // --- 5. 日历页逻辑 ---
+        let currentDate = new Date();
+        
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            document.getElementById('calendar-month-year').innerText = `${year}年 ${month + 1}月`;
+            
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDay = firstDay.getDay(); // 0 is Sunday
+            
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+
+            // 填充空白
+            for (let i = 0; i < startingDay; i++) {
+                grid.innerHTML += `<div class="calendar-day bg-gray-50 border-r border-b border-gray-200"></div>`;
+            }
+
+            // 填充日期
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+                // 查找当天的题目
+                const daysProblems = problems.filter(p => p.date === dateStr);
+                
+                let problemHtml = '';
+                // 如果题目超过3个，分成两列显示
+                const problemContainerClass = daysProblems.length >= 3 ? 'grid grid-cols-2 gap-1' : ''; 
+                
+                daysProblems.forEach(p => {
+                    const colorClass = p.difficulty === 'Easy' ? 'bg-blue-100 text-blue-800' : (p.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800');
+                    problemHtml += `<div onclick="router('detail', ${p.id}); event.stopPropagation();" class="text-xs p-1 rounded cursor-pointer truncate ${colorClass}">${p.title}</div>`;
+                });
+
+                grid.innerHTML += `
+                    <div class="calendar-day p-2 border-r border-b border-gray-200 relative bg-white">
+                        <div class="text-sm text-gray-500 font-medium">${i}</div>
+                        <div class="mt-1 overflow-y-auto max-h-[80px] ${problemContainerClass}">
+                            ${problemHtml}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // --- 6. 题目详情页逻辑 ---
+        function renderDetail(id) {
+            const problem = problems.find(p => p.id === id);
+            if (!problem) return;
+
+            // 题目信息
+            document.getElementById('detail-title').innerText = problem.title;
+            const diffBadge = document.getElementById('detail-difficulty');
+            diffBadge.innerText = getChineseDifficulty(problem.difficulty); // 难度中文
+            diffBadge.className = `px-2 py-1 rounded text-xs font-bold ${getDifficultyClass(problem.difficulty)}`;
+
+            document.getElementById('detail-tags').innerHTML = problem.tags.map(t => 
+                `<span class="bg-gray-200 px-2 py-1 rounded text-xs text-gray-700">${t}</span>`
+            ).join('');
+
+            // 题目描述
+            document.getElementById('detail-content').innerHTML = marked.parse(problem.desc || '暂无描述');
+            
+            // 示例
+            const examplesContainer = document.getElementById('detail-examples');
+            examplesContainer.innerHTML = '';
+            if (problem.examples && problem.examples.length > 0) {
+                problem.examples.forEach((example, index) => {
+                    examplesContainer.innerHTML += `
+                        <div class="mb-4 p-4 border rounded-md bg-gray-50">
+                            <p class="font-semibold text-sm mb-2">示例 ${index + 1}:</p>
+                            <p class="text-xs font-mono mb-1">输入: <code>${escapeHtml(example.input)}</code></p>
+                            <p class="text-xs font-mono">输出: <code>${escapeHtml(example.output)}</code></p>
+                        </div>
+                    `;
+                });
+                document.getElementById('detail-examples-section').classList.remove('hidden');
+            } else {
+                examplesContainer.innerHTML = '<p class="text-sm text-gray-500">暂无示例。</p>';
+                document.getElementById('detail-examples-section').classList.remove('hidden'); // 即使没有也要显示标题
+            }
+
+
+            // 题解代码
+            document.getElementById('detail-solution-code').innerText = problem.code || '// 暂无代码/笔记';
+
+            // 代码编辑器
+            const codeEditor = document.getElementById('detail-code-editor');
+            codeEditor.value = problem.code || '// 在这里写你的代码...';
+            codeEditor.problemId = problem.id; // 将problemId关联到编辑器，方便保存
+
+            // 默认显示“题目”tab
+            showDetailTab('problem');
+        }
+
+        // 详情页tab切换
+        function showDetailTab(tabName) {
+            document.querySelectorAll('.detail-tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('[id^="detail-tab-content-"]').forEach(content => content.classList.add('hidden'));
+
+            document.getElementById(`tab-btn-${tabName}`).classList.add('active');
+            document.getElementById(`detail-tab-content-${tabName}`).classList.remove('hidden');
+        }
+
+        // 保存编辑器代码到数据
+        function saveCodeChanges() {
+            if (currentProblemIdInDetail) {
+                const problem = problems.find(p => p.id === currentProblemIdInDetail);
+                if (problem) {
+                    const editorContent = document.getElementById('detail-code-editor').value;
+                    if (editorContent !== problem.code) { // 仅在内容有变化时更新
+                        problem.code = editorContent;
+                        saveData(); // 保存到 localStorage
+                        // console.log(`Code for problem ${problem.id} saved.`);
+                    }
+                }
+            }
+        }
+
+        // 模拟运行代码
+        function simulateRunCode() {
+            alert('运行代码功能需要后端支持，目前为模拟。您的代码已保存到本地。');
+            saveCodeChanges(); // 模拟运行前先保存
+            // 可以在这里添加一些简单的前端验证或输出，但无法真正执行代码
+            console.log("Simulating run for code:", document.getElementById('detail-code-editor').value);
+        }
+
+        // 模拟提交代码
+        function simulateSubmitCode() {
+            alert('提交代码功能需要后端支持，目前为模拟。您的代码已保存到本地。');
+            saveCodeChanges(); // 确保提交前保存代码
+            console.log("Simulating submit for code:", document.getElementById('detail-code-editor').value);
+        }
+
+        // --- 7. 心得感悟页逻辑 ---
+        let currentInsightFilterTag = 'all';
+        let currentInsightFilterDate = '';
+
+        function renderInsights(filterTag = currentInsightFilterTag) {
+            currentInsightFilterTag = filterTag;
+            currentInsightFilterDate = document.getElementById('insight-filter-date').value;
+
+            // 渲染筛选标签
+            const filterTagContainer = document.getElementById('insight-filter-tags');
+            filterTagContainer.innerHTML = '';
+            tags.forEach(tag => {
+                const isActive = currentInsightFilterTag === tag ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300';
+                filterTagContainer.innerHTML += `<button class="tag-button ${isActive} px-3 py-1 rounded-full text-sm transition" onclick="renderInsights('${tag}')">${tag}</button>`;
+            });
+
+            let filteredInsights = insights.filter(i => {
+                const matchTag = currentInsightFilterTag === 'all' || i.tags.includes(currentInsightFilterTag);
+                const matchDate = !currentInsightFilterDate || i.date === currentInsightFilterDate;
+                return matchTag && matchDate;
+            }).sort((a, b) => new Date(b.date) - new Date(a.date)); // 按日期倒序
+
+            const grid = document.getElementById('insights-grid');
+            grid.innerHTML = filteredInsights.map(i => `
+                <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 flex flex-col justify-between hover:shadow-md transition cursor-pointer" onclick="showInsightDetailModal(${i.id})">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">${i.title}</h3>
+                        <p class="text-sm text-gray-500 mb-3">${i.date}</p>
+                        <div class="flex flex-wrap gap-1 mb-4">
+                            ${i.tags.map(t => `<span class="bg-gray-100 px-2 py-1 rounded text-xs text-gray-600">${t}</span>`).join('')}
+                        </div>
+                        <div class="prose max-w-none text-gray-700 overflow-hidden text-ellipsis line-clamp-3 mb-4">
+                            ${marked.parse(i.content || '').substring(0, 150)}...
+                        </div>
+                    </div>
+                    <div class="flex justify-end mt-4">
+                        <button onclick="deleteInsight(${i.id}); event.stopPropagation();" class="text-red-500 hover:text-red-700 text-sm">删除</button>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('no-insights-message').classList.toggle('hidden', filteredInsights.length > 0);
+        }
+
+        function clearInsightFilters() {
+            document.getElementById('insight-filter-date').value = '';
+            renderInsights('all');
+        }
+
+        function deleteInsight(id) {
+            if(confirm('确定删除这条心得感悟吗？')) {
+                insights = insights.filter(i => i.id !== id);
+                saveData();
+                renderInsights(currentInsightFilterTag);
+            }
+        }
+
+
+        // --- 8. 资源页逻辑 ---
+        function renderResources() {
+            const list = document.getElementById('resources-list');
+            list.innerHTML = '';
+
+            if (resources.length === 0) {
+                document.getElementById('no-resources-message').classList.remove('hidden');
+                return;
+            } else {
+                document.getElementById('no-resources-message').classList.add('hidden');
+            }
+
+            resources.sort((a, b) => new Date(b.date) - new Date(a.date)); // 按日期倒序
+            list.innerHTML = resources.map(r => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${r.title}</td>
+                    <td class="px-6 py-4 text-sm text-blue-600 hover:underline"><a href="${r.url}" target="_blank" rel="noopener noreferrer" class="truncate block max-w-[200px]">${r.url}</a></td>
+                    <td class="px-6 py-4 text-sm text-gray-500">${r.description ? marked.parse(r.description).replace(/(<([^>]+)>)/gi, "").substring(0, 100) + (r.description.length > 100 ? '...' : '') : '无描述'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${r.date}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <button onclick="deleteResource(${r.id})" class="text-red-500 hover:text-red-700">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function deleteResource(id) {
+            if(confirm('确定删除这条资源记录吗？')) {
+                resources = resources.filter(r => r.id !== id);
+                saveData();
+                renderResources();
+            }
+        }
+
+        // --- 9. 模态框及表单处理 ---
+        let selectedTagsForNewProblem = []; // 用于存储新题目选择的标签
+        let selectedTagsForNewInsight = []; // 用于存储新感悟选择的标签
+        let newProblemExamples = []; // 临时存储新题目的示例
+
+        // --- 添加题目模态框 ---
+        function showAddModal() {
+            document.getElementById('add-modal').classList.remove('hidden');
+            document.getElementById('inp-date').valueAsDate = new Date(); // 默认今天
+            selectedTagsForNewProblem = []; // 重置已选标签
+            newProblemExamples = []; // 重置示例
+            renderSelectedTags(selectedTagsForNewProblem, 'selected-tags-display');
+            renderTagDropdownOptions(selectedTagsForNewProblem, 'inp-tags-input', 'tag-dropdown'); // 刷新标签下拉列表
+            document.getElementById('inp-tags-input').value = ''; // 清空输入框
+            document.getElementById('example-fields-container').innerHTML = '<p class="text-xs text-gray-500">点击 "+ 添加示例" 按钮来添加输入/输出示例。</p>';
+        }
+
+        function closeAddModal() {
+            document.getElementById('add-modal').classList.add('hidden');
+            document.getElementById('add-form').reset();
+            selectedTagsForNewProblem = []; 
+            newProblemExamples = [];
+            renderSelectedTags(selectedTagsForNewProblem, 'selected-tags-display');
+            document.getElementById('example-fields-container').innerHTML = '<p class="text-xs text-gray-500">点击 "+ 添加示例" 按钮来添加输入/输出示例。</p>';
+        }
+
+        function addExampleFields() {
+            // 确保移除初始提示
+            const container = document.getElementById('example-fields-container');
+            if (container.querySelector('p.text-xs')) {
+                container.innerHTML = ''; 
+            }
+
+            const exampleIndex = newProblemExamples.length;
+            newProblemExamples.push({ input: '', output: '' }); // 添加空示例到数组
+
+            const exampleDiv = document.createElement('div');
+            exampleDiv.className = 'flex flex-col gap-2 p-3 border border-gray-200 rounded-md bg-white relative';
+            exampleDiv.innerHTML = `
+                <div class="absolute top-1 right-2">
+                    <button type="button" onclick="removeExampleFields(this, ${exampleIndex})" class="text-red-500 hover:text-red-700 text-lg">&times;</button>
+                </div>
+                <label class="block text-xs font-medium text-gray-700">示例 ${exampleIndex + 1} 输入:</label>
+                <textarea class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-1 text-sm font-mono" rows="2" 
+                    oninput="newProblemExamples[${exampleIndex}].input = this.value"></textarea>
+                <label class="block text-xs font-medium text-gray-700">示例 ${exampleIndex + 1} 输出:</label>
+                <textarea class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-1 text-sm font-mono" rows="2" 
+                    oninput="newProblemExamples[${exampleIndex}].output = this.value"></textarea>
+            `;
+            container.appendChild(exampleDiv);
+        }
+
+        function removeExampleFields(button, indexToRemove) {
+            button.closest('div.flex.flex-col').remove(); // 移除HTML元素
+            newProblemExamples.splice(indexToRemove, 1); // 从数组中移除
+
+            // 重新索引并更新事件监听，或者简化：只移除不重新索引，提交时收集
+            // 对于当前这种简单场景，直接移除是OK的，因为提交时会遍历容器
+            // 或者更健壮的方式是，重新渲染整个容器，但会丢失用户输入
+            // 最好的方式是：在提交时遍历容器，而不是依赖newProblemExamples数组
+            // 这里为了简单，继续依赖newProblemExamples，但在移除时需要注意索引问题
+            // 实际上，更简单的做法是，只让newProblemExamples存放id，然后每次修改都找到对应id的元素
+            // 或者，当删除时，直接找到对应的元素，然后删除。
+            // 鉴于目前是直接移除DOM，并从newProblemExamples中删除，但DOM元素本身不带有index属性
+            // 重新设计一下removeExampleFields：直接通过DOM操作来移除，并重新从DOM中构建newProblemExamples
+            // 简化处理：每次addExampleFields只是添加，删除时直接remove DOM元素。提交时再遍历DOM收集
+            collectAndSetNewProblemExamples(); // 每次删除后刷新一下newProblemExamples，确保同步
+            if (document.getElementById('example-fields-container').children.length === 0) {
+                document.getElementById('example-fields-container').innerHTML = '<p class="text-xs text-gray-500">点击 "+ 添加示例" 按钮来添加输入/输出示例。</p>';
+            }
+        }
+
+        // 辅助函数，用于在提交前从DOM收集示例
+        function collectExamplesFromForm() {
+            const examples = [];
+            const exampleDivs = document.querySelectorAll('#example-fields-container > div');
+            exampleDivs.forEach(div => {
+                const input = div.querySelector('textarea:nth-of-type(1)').value;
+                const output = div.querySelector('textarea:nth-of-type(2)').value;
+                if (input.trim() || output.trim()) { // 只收集非空示例
+                    examples.push({ input: input, output: output });
+                }
+            });
+            return examples;
+        }
+
+
+        document.getElementById('add-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const examples = collectExamplesFromForm(); // 收集示例
+            const newProblem = {
+                id: getNextId(),
+                title: document.getElementById('inp-title').value,
+                difficulty: document.getElementById('inp-difficulty').value,
+                date: document.getElementById('inp-date').value,
+                tags: [...new Set(selectedTagsForNewProblem)], // 使用 Set 去重
+                desc: document.getElementById('inp-desc').value,
+                examples: examples, // 保存示例
+                code: document.getElementById('inp-code').value
+            };
+            problems.push(newProblem);
+            saveData();
+            closeAddModal();
+            router('detail', newProblem.id); // 创建后跳转到新题目的详情页
+        });
+
+        // --- 新建分类模态框 ---
+        function showAddTagModal() {
+            document.getElementById('add-tag-modal').classList.remove('hidden');
+            document.getElementById('inp-new-tag').value = ''; // 清空输入框
+        }
+
+        function closeAddTagModal() {
+            document.getElementById('add-tag-modal').classList.add('hidden');
+            document.getElementById('add-tag-form').reset();
+        }
+
+        document.getElementById('add-tag-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const newTag = document.getElementById('inp-new-tag').value.trim();
+            if (newTag && !tags.includes(newTag)) {
+                tags.push(newTag);
+                saveData();
+                closeAddTagModal();
+                renderProblemList(currentProblemFilterTag); // 刷新题库页面的分类标签
+                renderTagDropdownOptions(selectedTagsForNewProblem, 'inp-tags-input', 'tag-dropdown'); // 刷新添加题目时的标签选项
+                renderTagDropdownOptions(selectedTagsForNewInsight, 'inp-insight-tags-input', 'insight-tag-dropdown'); // 刷新添加感悟时的标签选项
+            } else if (tags.includes(newTag)) {
+                alert('该分类已存在！');
+            }
+        });
+
+        // --- 添加心得感悟模态框 ---
+        function showAddInsightModal() {
+            document.getElementById('add-insight-modal').classList.remove('hidden');
+            document.getElementById('inp-insight-date').valueAsDate = new Date();
+            selectedTagsForNewInsight = [];
+            renderSelectedTags(selectedTagsForNewInsight, 'selected-insight-tags-display');
+            renderTagDropdownOptions(selectedTagsForNewInsight, 'inp-insight-tags-input', 'insight-tag-dropdown');
+            document.getElementById('inp-insight-tags-input').value = '';
+        }
+
+        function closeAddInsightModal() {
+            document.getElementById('add-insight-modal').classList.add('hidden');
+            document.getElementById('add-insight-form').reset();
+            selectedTagsForNewInsight = [];
+            renderSelectedTags(selectedTagsForNewInsight, 'selected-insight-tags-display');
+        }
+
+        document.getElementById('add-insight-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const newInsight = {
+                id: getNextId(),
+                title: document.getElementById('inp-insight-title').value,
+                date: document.getElementById('inp-insight-date').value,
+                tags: [...new Set(selectedTagsForNewInsight)],
+                content: document.getElementById('inp-insight-content').value
+            };
+            insights.push(newInsight);
+            saveData();
+            closeAddInsightModal();
+            router('insights'); // 添加后跳转到心得感悟页
+        });
+
+        // 心得感悟详情模态框
+        function showInsightDetailModal(id) {
+            const insight = insights.find(i => i.id === id);
+            if (!insight) return;
+
+            document.getElementById('insight-detail-title').innerText = insight.title;
+            document.getElementById('insight-detail-date').innerText = insight.date;
+            document.getElementById('insight-detail-tags').innerHTML = insight.tags.map(t => 
+                `<span class="bg-gray-100 px-2 py-1 rounded text-xs text-gray-600">${t}</span>`
+            ).join('');
+            document.getElementById('insight-detail-content').innerHTML = marked.parse(insight.content || '暂无内容');
+            
+            document.getElementById('insight-detail-modal').classList.remove('hidden');
+        }
+
+        function closeInsightDetailModal() {
+            document.getElementById('insight-detail-modal').classList.add('hidden');
+        }
+
+        // --- 添加资源模态框 ---
+        function showAddResourceModal() {
+            document.getElementById('add-resource-modal').classList.remove('hidden');
+            document.getElementById('inp-resource-date').valueAsDate = new Date();
+        }
+
+        function closeAddResourceModal() {
+            document.getElementById('add-resource-modal').classList.add('hidden');
+            document.getElementById('add-resource-form').reset();
+        }
+
+        document.getElementById('add-resource-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const newResource = {
+                id: getNextId(),
+                title: document.getElementById('inp-resource-title').value,
+                url: document.getElementById('inp-resource-url').value,
+                description: document.getElementById('inp-resource-desc').value,
+                date: document.getElementById('inp-resource-date').value
+            };
+            resources.push(newResource);
+            saveData();
+            closeAddResourceModal();
+            router('resources'); // 添加后跳转到资源页
+        });
+
+        // --- 标签下拉选择通用逻辑 ---
+        let tagDropdownTimeout;
+
+        function showTagDropdown() { // For problems
+            clearTimeout(tagDropdownTimeout);
+            renderTagDropdownOptions(selectedTagsForNewProblem, 'inp-tags-input', 'tag-dropdown');
+            document.getElementById('tag-dropdown').classList.remove('hidden');
+        }
+
+        function hideTagDropdownDelayed() { // For problems
+            tagDropdownTimeout = setTimeout(() => {
+                document.getElementById('tag-dropdown').classList.add('hidden');
+            }, 200); 
+        }
+
+        function showInsightTagDropdown() { // For insights
+            clearTimeout(tagDropdownTimeout);
+            renderTagDropdownOptions(selectedTagsForNewInsight, 'inp-insight-tags-input', 'insight-tag-dropdown');
+            document.getElementById('insight-tag-dropdown').classList.remove('hidden');
+        }
+
+        function hideInsightTagDropdownDelayed() { // For insights
+            tagDropdownTimeout = setTimeout(() => {
+                document.getElementById('insight-tag-dropdown').classList.add('hidden');
+            }, 200);
+        }
+
+        // 通用渲染已选标签
+        function renderSelectedTags(selectedArr, displayElementId) {
+            const displayDiv = document.getElementById(displayElementId);
+            displayDiv.innerHTML = selectedArr.map(tag => `
+                <span class="selected-tag">
+                    ${tag}
+                    <button type="button" onclick="removeSelectedTagFromList('${tag}', '${displayElementId}')">x</button>
+                </span>
+            `).join('');
+        }
+
+        // 通用移除已选标签
+        function removeSelectedTagFromList(tagToRemove, displayElementId) {
+            if (displayElementId === 'selected-tags-display') {
+                selectedTagsForNewProblem = selectedTagsForNewProblem.filter(tag => tag !== tagToRemove);
+                renderSelectedTags(selectedTagsForNewProblem, displayElementId);
+                renderTagDropdownOptions(selectedTagsForNewProblem, 'inp-tags-input', 'tag-dropdown');
+                document.getElementById('inp-tags-input').focus();
+            } else if (displayElementId === 'selected-insight-tags-display') {
+                selectedTagsForNewInsight = selectedTagsForNewInsight.filter(tag => tag !== tagToRemove);
+                renderSelectedTags(selectedTagsForNewInsight, displayElementId);
+                renderTagDropdownOptions(selectedTagsForNewInsight, 'inp-insight-tags-input', 'insight-tag-dropdown');
+                document.getElementById('inp-insight-tags-input').focus();
+            }
+        }
+
+
+        // 通用渲染下拉标签选项
+        function renderTagDropdownOptions(selectedArr, inputElementId, dropdownElementId) {
+            const dropdown = document.getElementById(dropdownElementId);
+            const inputValue = document.getElementById(inputElementId).value.toLowerCase();
+            
+            const availableTags = tags.filter(tag => 
+                !selectedArr.includes(tag) && tag.toLowerCase().includes(inputValue)
+            );
+
+            if (availableTags.length === 0 && inputValue.length > 0 && !tags.includes(inputValue)) {
+                dropdown.innerHTML = `
+                    <div class="tag-dropdown-item bg-blue-100 hover:bg-blue-200" onmousedown="addTagAndSelectNew('${inputValue}', '${inputElementId}', '${dropdownElementId}')">
+                        <span>创建新标签: "${inputValue}"</span>
+                        <span class="text-blue-600">+</span>
+                    </div>
+                `;
+            } else {
+                dropdown.innerHTML = availableTags.map(tag => `
+                    <div class="tag-dropdown-item" onmousedown="addTagToSelected('${tag}', '${inputElementId}')">${tag}</div>
+                `).join('');
+            }
+            if (dropdown.innerHTML === '') {
+                dropdown.classList.add('hidden');
+            } else {
+                dropdown.classList.remove('hidden');
+            }
+        }
+
+        // 通用添加标签到已选列表
+        function addTagToSelected(tag, inputElementId) {
+            if (inputElementId === 'inp-tags-input') {
+                if (!selectedTagsForNewProblem.includes(tag)) {
+                    selectedTagsForNewProblem.push(tag);
+                    renderSelectedTags(selectedTagsForNewProblem, 'selected-tags-display');
+                }
+                document.getElementById('inp-tags-input').value = '';
+                renderTagDropdownOptions(selectedTagsForNewProblem, 'inp-tags-input', 'tag-dropdown');
+                document.getElementById('inp-tags-input').focus();
+            } else if (inputElementId === 'inp-insight-tags-input') {
+                if (!selectedTagsForNewInsight.includes(tag)) {
+                    selectedTagsForNewInsight.push(tag);
+                    renderSelectedTags(selectedTagsForNewInsight, 'selected-insight-tags-display');
+                }
+                document.getElementById('inp-insight-tags-input').value = '';
+                renderTagDropdownOptions(selectedTagsForNewInsight, 'inp-insight-tags-input', 'insight-tag-dropdown');
+                document.getElementById('inp-insight-tags-input').focus();
+            }
+        }
+
+        // 通用创建新标签并选择
+        function addTagAndSelectNew(newTagValue, inputElementId, dropdownElementId) {
+            const trimmedTag = newTagValue.trim();
+            if (trimmedTag && !tags.includes(trimmedTag)) {
+                tags.push(trimmedTag);
+                saveData(); // 保存新标签
+            }
+            addTagToSelected(trimmedTag, inputElementId);
+            document.getElementById(inputElementId).value = '';
+            renderTagDropdownOptions(selectedTagsForNewProblem, 'inp-tags-input', 'tag-dropdown'); // 刷新两个下拉列表
+            renderTagDropdownOptions(selectedTagsForNewInsight, 'inp-insight-tags-input', 'insight-tag-dropdown');
+        }
+
+        document.getElementById('inp-tags-input').addEventListener('input', () => renderTagDropdownOptions(selectedTagsForNewProblem, 'inp-tags-input', 'tag-dropdown'));
+        document.getElementById('inp-insight-tags-input').addEventListener('input', () => renderTagDropdownOptions(selectedTagsForNewInsight, 'inp-insight-tags-input', 'insight-tag-dropdown'));
+
+
+        // --- 10. 工具函数 & 事件处理 ---
+        function getDifficultyClass(diff) {
+            if (diff === 'Easy') return 'tag-easy';
+            if (diff === 'Medium') return 'tag-medium';
+            return 'tag-hard';
+        }
+        function getChineseDifficulty(diff) {
+            if (diff === 'Easy') return '简单';
+            if (diff === 'Medium') return '中等';
+            if (diff === 'Hard') return '困难';
+            return diff; // Fallback
+        }
+
+        // HTML转义工具，用于显示用户输入的内容
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+
+        // --- 初始化 ---
+        // 预置一些假数据，如果LocalStorage为空
+        if (problems.length === 0 && insights.length === 0 && resources.length === 0) {
+            problems = [
+                { id: getNextId(), title: "两数之和", difficulty: "Easy", date: "2023-10-01", tags: ["数组", "哈希表"], desc: "给定一个整数数组 `nums` 和一个整数目标值 `target`，请你在该数组中找出和为目标值 `target` 的那两个整数，并返回它们的数组下标。\n\n你可以假设每种输入只会对应一个答案。但是，数组中同一个元素在答案里不能重复出现。", code: "class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        // 你的解题代码\n        // 这是一个示例代码\n        for (int i = 0; i < nums.length; i++) {\n            for (int j = i + 1; j < nums.length; j++) {\n                if (nums[i] + nums[j] == target) {\n                    return new int[]{i, j};\n                }\n            }\n        }\n        return new int[]{};\n    }\n}", examples: [{input: "nums = [2,7,11,15], target = 9", output: "[0,1]"}, {input: "nums = [3,2,4], target = 6", output: "[1,2]"}] },
+                { id: getNextId(), title: "两数相加", difficulty: "Medium", date: "2023-10-02", tags: ["链表", "数学"], desc: "给出两个 **非空** 的链表用来表示两个非负的整数。它们每位数字都是按照 **逆序** 方式存储的，并且每个节点只能存储 **一位** 数字。\n\n请你将两个数相加，并以相同形式返回一个新链表。", code: "// 代码待完成", examples: [{input: "l1 = [2,4,3], l2 = [5,6,4]", output: "[7,0,8]"}] },
+                { id: getNextId(), title: "寻找两个正序数组的中位数", difficulty: "Hard", date: new Date().toISOString().split('T')[0], tags: ["数组", "二分查找"], desc: "给定两个大小分别为 `m` 和 `n` 的正序（从小到大）数组 `nums1` 和 `nums2`。请你找出并返回这两个正序数组的 **中位数** 。", code: "class Solution {\n    public double findMedianSortedArrays(int[] nums1, int[] nums2) {\n        // 你的解题代码\n    }\n}", examples: [{input: "nums1 = [1,3], nums2 = [2]", output: "2.00000"}, {input: "nums1 = [1,2], nums2 = [3,4]", output: "2.50000"}] }
+            ];
+            insights = [
+                { id: getNextId(), title: "动态规划学习心得", content: "### DP 入门\n今天学习了动态规划的基础概念，主要理解了重叠子问题和最优子结构这两个特性。感觉还是需要多做题才能真正掌握。\n\n#### 关键点:\n- **重叠子问题**: 计算过程中有重复的子问题。\n- **最优子结构**: 大问题的最优解可以由子问题的最优解推导而来。\n\n接下来计划做一些简单的 DP 题目。", date: "2023-12-03", tags: ["动态规划", "学习笔记"] },
+                { id: getNextId(), title: "如何高效刷题", content: "我觉得刷题效率的关键在于：\n1. **理解题目**：不是看到题目就写，先理解题意和约束。\n2. **思考解法**：多尝试几种方法，并分析时间复杂度。\n3. **总结归纳**：每道题做完都要总结，写下自己的思考过程和解题思路。", date: "2023-12-01", tags: ["学习方法"] }
+            ];
+            resources = [
+                { id: getNextId(), title: "LeetCode 官网", url: "https://leetcode.cn/", description: "刷算法题目的首选平台。", date: "2023-11-20" },
+                { id: getNextId(), title: "力扣（LeetCode）", url: "https://www.bilibili.com/video/BV1AE411B7h5", description: "B站上很火的算法讲解，适合入门。", date: "2023-11-25" }
+            ];
+            saveData();
+        }
+
+        router('home'); // 默认显示首页
+
+    </script>
+</body>
+</html>
