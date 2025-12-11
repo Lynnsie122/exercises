@@ -115,7 +115,13 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Noto Sans SC', sans-serif; }
     h1, h2, h3 { color: #37352f; font-weight: 700; }
     .stMetric { background-color: #f7f6f3; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; }
-    .block-container { padding-top: 2rem; }
+
+    /* 解决顶部白色条挡住按钮的问题：增加顶部内边距 */
+    /* Streamlit 的主要内容容器通常有一个 .block-container 类 */
+    .block-container { 
+        padding-top: 3rem; /* 调整这个值以适配实际遮挡情况 */
+    }
+
     /* 模拟 Notion 标签 */
     .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-right: 5px; margin-bottom: 5px; }
     .tag-easy { background: #e6fcf5; color: #0ca678; } /* 简单 */
@@ -333,7 +339,8 @@ elif current_page == "code_problems":
             color = "#0ca678" if p['difficulty'] == "简单" else ("#f59f00" if p['difficulty'] == "中等" else "#fa5252")
 
             # 卡片布局
-            col_mark, col_info, col_action = st.columns([0.2, 8, 1.5])
+            # MODIFICATION 1: 调整 col_action 宽度以容纳更多按钮并使其更窄
+            col_mark, col_info, col_action = st.columns([0.2, 8, 1.8])  # Adjusted width for col_action
             with col_mark:
                 st.markdown(
                     f"<div style='margin-top:10px; width:10px; height:40px; background:{color}; border-radius:4px;'></div>",
@@ -350,8 +357,35 @@ elif current_page == "code_problems":
                 except (json.JSONDecodeError, TypeError):
                     pass
             with col_action:
-                if st.button("查看详情", key=f"btn_{p['id']}"):
+                # 查看详情（现在详情页也支持编辑）
+                if st.button("查看详情", key=f"btn_view_{p['id']}", use_container_width=True):
                     navigate_to("problem_detail", id=p['id'], source="code_problems")
+
+                # 删除按钮及确认逻辑
+                # 使用 session_state 来存储当前正在等待确认删除的题目ID
+                if 'confirm_delete_problem_id' not in st.session_state:
+                    st.session_state['confirm_delete_problem_id'] = None
+
+                if st.session_state['confirm_delete_problem_id'] == p['id']:
+                    st.warning(f"确定删除 '{p['title']}' 吗？此操作会同时删除所有相关打卡日志且无法撤销！")
+                    col_confirm_del1, col_confirm_del2 = st.columns(2)
+                    with col_confirm_del1:
+                        if st.button("✅ 确认删除", key=f"confirm_del_{p['id']}", use_container_width=True):
+                            # 先删除 logs 中的相关记录
+                            run_query("DELETE FROM logs WHERE problem_id=?", (p['id'],))
+                            # 再删除 problems 中的题目
+                            run_query("DELETE FROM problems WHERE id=?", (p['id'],))
+                            st.success(f"题目 '{p['title']}' 及相关日志已删除。")
+                            st.session_state['confirm_delete_problem_id'] = None  # 清除确认状态
+                            st.rerun()
+                    with col_confirm_del2:
+                        if st.button("❌ 取消", key=f"cancel_del_{p['id']}", use_container_width=True):
+                            st.session_state['confirm_delete_problem_id'] = None  # 清除确认状态
+                            st.rerun()
+                else:
+                    if st.button("🗑️ 删除", key=f"btn_del_{p['id']}", type="secondary", use_container_width=True):
+                        st.session_state['confirm_delete_problem_id'] = p['id']  # 设置当前题目为待确认删除状态
+                        st.rerun()
             st.divider()
 
 # --- 📝 题目详情页 (独立页面) ---
@@ -371,27 +405,80 @@ elif current_page == "problem_detail":
         if p_data:
             problem = p_data[0]
 
-            # 顶部导航
-            if st.button("⬅️ 返回"):
-                go_back()
+            # 顶部返回按钮 (删除顶上的删除按钮，并让返回按钮占据完整宽度)
+            col_back_btn = st.columns([1])[0]  # 调整为单列
+            with col_back_btn:
+                if st.button("⬅️ 返回"):
+                    go_back()
 
-            st.title(f"{problem['title']}")
-
-            # 难度标签
-            diff_color = "green" if problem['difficulty'] == "简单" else (
-                "orange" if problem['difficulty'] == "中等" else "red")
-            st.markdown(f":{diff_color}[{problem['difficulty']}]  •  📅 创建于 {problem['created_at']}")
-
-            # 标签
+            # --- 题目名称、难度、标签排列在一行 (只读显示) ---
+            # 准备标签的HTML
+            problem_tags_html = ""
             try:
-                p_tags = json.loads(problem['tags']) if problem['tags'] else []
-                tags_html = "".join([f"<span class='tag tag-custom'>{tag}</span>" for tag in p_tags])
-                if tags_html:
-                    st.markdown(f"**标签**: {tags_html}", unsafe_allow_html=True)
+                p_tags_list = json.loads(problem['tags']) if problem['tags'] else []
+                problem_tags_html = "".join(
+                    [f"<span class='tag tag-custom' style='margin-right: 5px; margin-bottom: 0;'>{tag}</span>" for tag
+                     in p_tags_list])
             except (json.JSONDecodeError, TypeError):
                 pass
 
-            # 主要内容区
+            # 难度颜色
+            difficulty_bg_color = '#e6fcf5' if problem['difficulty'] == '简单' else (
+                '#fff3bf' if problem['difficulty'] == '中等' else '#fff5f5')
+            difficulty_text_color = '#0ca678' if problem['difficulty'] == '简单' else (
+                '#f59f00' if problem['difficulty'] == '中等' else '#fa5252')
+
+            st.markdown(f"""
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 5px; margin-top: 15px;">
+                    <h1 style="margin: 0; font-size: 2em;">{problem['title']}</h1>
+                    <span style="
+                        display: inline-block;
+                        padding: 4px 10px;
+                        border-radius: 6px;
+                        font-weight: bold;
+                        font-size: 0.9em;
+                        background-color: {difficulty_bg_color};
+                        color: {difficulty_text_color};
+                    ">{problem['difficulty']}</span>
+                    <div style="display: flex; flex-wrap: wrap; align-items: center;">
+                        {problem_tags_html}
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown(f"📅 创建于 {problem['created_at']}")  # 保持创建日期显示
+
+            # --- 编辑区域 ---
+            # Removed st.subheader("📝 编辑题目信息") and the markdown labels for inputs
+
+            # Then, display the input widgets themselves in a row, using hidden labels
+            col_edit_title, col_edit_diff, col_edit_tags = st.columns([3, 1, 2])
+
+            with col_edit_title:
+                edited_title = st.text_input("题目名称", value=problem['title'],
+                                             key="edit_title")  # label_visibility="hidden" removed to make the label visible by default
+
+            with col_edit_diff:
+                all_difficulties = ["简单", "中等", "困难"]
+                # 找到当前难度的索引，如果找不到默认为0
+                initial_difficulty_index = all_difficulties.index(problem['difficulty']) if problem[
+                                                                                                'difficulty'] in all_difficulties else 0
+                edited_difficulty = st.selectbox("难度", all_difficulties, index=initial_difficulty_index,
+                                                 key="edit_difficulty")  # label_visibility="hidden" removed
+
+            with col_edit_tags:
+                # 将 JSON 字符串转换为逗号分隔的字符串以便编辑
+                current_tags_str = ""
+                try:
+                    p_tags = json.loads(problem['tags']) if problem['tags'] else []
+                    current_tags_str = ", ".join(p_tags)
+                except (json.JSONDecodeError, TypeError):
+                    # 忽略无效 JSON，将其视为空字符串
+                    pass
+                edited_tags_input = st.text_input("标签 (用逗号分隔，如: 数组,哈希表)", value=current_tags_str,
+                                                  key="edit_tags_input")  # label_visibility="hidden" removed
+
+            # 主要内容区 (描述、笔记、代码)
             c1, c2 = st.columns([1, 1])
 
             with c1:
@@ -410,11 +497,15 @@ elif current_page == "problem_detail":
 
             # 底部保存按钮
             if st.button("💾 保存所有修改", type="primary"):
-                # 注意：这里我们不再修改 tags 字段，因为它是通过添加题目时设置的
+                # 将编辑后的标签字符串转换回 JSON 格式
+                edited_tags_list = [t.strip() for t in edited_tags_input.split(',') if t.strip()]
+                edited_tags_json = json.dumps(edited_tags_list, ensure_ascii=False)  # 确保中文标签正常存储
+
                 run_query("""
-                    UPDATE problems SET description=?, notes=?, solution_code=? WHERE id=?
-                """, (desc, notes, code, p_id))
+                    UPDATE problems SET title=?, difficulty=?, tags=?, description=?, notes=?, solution_code=? WHERE id=?
+                """, (edited_title, edited_difficulty, edited_tags_json, desc, notes, code, p_id))
                 st.toast("✅ 保存成功！")
+                st.rerun()  # 重新加载页面以即时显示更改
 
             st.divider()
 
@@ -435,8 +526,8 @@ elif current_page == "calendar":
 
     # 获取打卡记录
     logs = run_query("""
-        SELECT logs.id, logs.log_date, problems.title, problems.id as pid, problems.difficulty 
-        FROM logs 
+        SELECT logs.id, logs.log_date, problems.title, problems.id as pid, problems.difficulty
+        FROM logs
         JOIN problems ON logs.problem_id = problems.id
         ORDER BY logs.log_date DESC
     """, fetch=True)
@@ -560,12 +651,12 @@ elif current_page == "notebook":
                     padding: 10px;
                     margin-bottom: 5px; /* Space between card and buttons below */
                     text-align: left;
-                    width: 100%; 
+                    width: 100%;
                     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
                     min-height: 100px; /* Adjusted min-height to fit title + date */
                     display: flex;
                     flex-direction: column;
-                    justify-content: flex-start; 
+                    justify-content: flex-start;
                 ">
                     <h3 style="margin-top: 0; margin-bottom: 5px; color: #37352f; font-size: 1.1em; word-break: break-word;">{nb['name']}</h3>
                     <p style="font-size:0.8em; color:gray; margin-bottom: 0;">创建于 {nb['created_at']}</p>
