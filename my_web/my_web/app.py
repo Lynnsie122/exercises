@@ -665,7 +665,7 @@ elif current_page == "notebook":
 
                 # Buttons in a new row of columns, immediately after the card div
                 # Adjusted column ratios to give buttons more space for horizontal display
-                button_col_enter, spacer_col, button_col_delete, _ = st.columns([2, 0.5, 2, 4.5])
+                button_col_enter, spacer_col, button_col_delete, _ = st.columns([2, 0.01, 2, 4.6])
 
                 with button_col_enter:
                     # "进入" button
